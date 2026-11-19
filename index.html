@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Badminton Pro 2.5D — Stadium & Roster Edition</title>
+    <!-- Tailwind CSS লোড করা হচ্ছে রেসপন্সিভ ও আধুনিক লেআউটের জন্য -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- বাংলা (Hind Siliguri) ও ইংরেজি স্পোর্টস (Rajdhani) ফন্ট -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* গ্লোবাল রিসেট এবং মোবাইল/টাচ ব্রাউজার জেসচার নিয়ন্ত্রণ */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #050811;
+            font-family: 'Hind Siliguri', sans-serif;
+            color: #f8fafc;
+        }
+        .font-sport {
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* অতি-ক্ষুদ্র ও স্লিক পিল/সার্কুলার মাইক্রো-UI বাটন স্টাইল */
+        .micro-pill {
+            height: 26px;
+            padding: 0 9px;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.64);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            font-size: 11px;
+            font-weight: 600;
+            color: #f1f5f9;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .micro-pill:hover {
+            background: rgba(30, 41, 59, 0.88);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .micro-pill:active {
+            transform: scale(0.92);
+        }
+
+        .micro-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.64);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            font-size: 11px;
+            color: #f1f5f9;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .micro-circle:hover {
+            background: rgba(30, 41, 59, 0.88);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .micro-circle:active {
+            transform: scale(0.9);
+        }
+
+        /* স্লিক মিনিমাল ভার্চুয়াল অ্যানালগ জয়স্টিক */
+        #joystick-base {
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(15, 23, 42, 0.34) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(4px);
+            position: relative;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45);
+        }
+        #joystick-stick {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.94), rgba(148, 163, 184, 0.78));
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+            position: absolute;
+            top: 31px;
+            left: 31px;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        /* ডান পাশের কমপ্যাক্ট সার্কুলার অ্যাকশন বাটন */
+        .ergo-btn {
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 3px rgba(255, 255, 255, 0.4);
+            transition: transform 0.07s ease, filter 0.07s ease;
+            cursor: pointer;
+        }
+        .ergo-btn:active, .ergo-btn.pressed {
+            transform: scale(0.88);
+            filter: brightness(1.25);
+        }
+
+        /* লবি ও মডাল গ্লাস প্যানেল */
+        .glass-panel {
+            background: rgba(11, 17, 32, 0.89);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .mode-tile {
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .mode-tile:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+        .mode-tile.selected {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.44) 0%, rgba(14, 165, 233, 0.25) 100%);
+            border-color: #38bdf8;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
+        }
+
+        /* স্ক্রলবার কাস্টমাইজেশন */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.22);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =====================================================================
+         ১. অতি-কমপ্যাক্ট টপ মাইক্রো-HUD বার (খেলা চলাকালীন যাতে কোর্ট ঢেকে না যায়)
+    ====================================================================== -->
+    <header id="game-hud" class="hidden fixed top-0 inset-x-0 px-2.5 sm:px-5 py-1.5 flex items-center justify-between z-30 pointer-events-none">
+        <!-- বাম পাশের ক্ষুদ্র গোল ও পিল কন্ট্রোল -->
+        <div class="flex items-center gap-1.5 pointer-events-auto">
+            <button id="hud-btn-menu" class="micro-pill" title="মেইন মেনু">
+                <span class="text-[10px]">☰</span>
+                <span>মেনু</span>
+            </button>
+            <button id="hud-btn-env" class="micro-pill text-amber-300" title="দিন ও রাত পরিবর্তন">
+                <span id="hud-env-icon" class="text-[10px]">☀️</span>
+                <span id="hud-env-text">দিন</span>
+            </button>
+            <button id="hud-btn-cam" class="micro-circle" title="ক্যামেরা জুম টগল">
+                🎥
+            </button>
+            <button id="hud-btn-gallery" class="micro-circle" title="স্টেডিয়াম ও রেফারেন্স গ্যালারি">
+                🖼️
+            </button>
+        </div>
+
+        <!-- মাঝখানের স্লিক কম্প্যাক্ট স্কোরবোর্ড পিল -->
+        <div class="pointer-events-auto flex items-center bg-slate-950/78 backdrop-blur-md border border-white/15 rounded-full px-3 sm:px-4 py-0.5 shadow-xl gap-2.5 sm:gap-4">
+            <div class="flex items-center gap-1.5">
+                <span id="hud-serve-left" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="hud-name-left" class="text-[10px] sm:text-xs font-semibold text-sky-300 truncate max-w-[65px] sm:max-w-[90px]">আপনি</span>
+            </div>
+
+            <div class="flex items-center gap-1.5 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
+                <span id="hud-score-left" class="font-sport text-base sm:text-lg font-bold text-white leading-none">0</span>
+                <span class="text-white/40 text-[10px]">-</span>
+                <span id="hud-score-right" class="font-sport text-base sm:text-lg font-bold text-rose-300 leading-none">0</span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <span id="hud-name-right" class="text-[10px] sm:text-xs font-semibold text-rose-300 truncate max-w-[65px] sm:max-w-[90px]">প্রতিপক্ষ</span>
+                <span id="hud-serve-right" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse opacity-0"></span>
+            </div>
+
+            <span id="hud-mode-tag" class="hidden md:inline-block font-sport text-[10px] uppercase tracking-wider text-amber-300/90 border-l border-white/15 pl-2.5">
+                1 VS 1 • ১১ পয়েন্ট
+            </span>
+        </div>
+
+        <!-- ডান পাশের ক্ষুদ্র কন্ট্রোল ও প্র্যাকটিস ফিড সিলেক্টর -->
+        <div class="flex items-center gap-1.5 pointer-events-auto">
+            <select id="practice-feed-select" class="hidden micro-pill bg-slate-900/85 text-cyan-300 outline-none">
+                <option value="random">🎯 র‍্যান্ডম ফিড</option>
+                <option value="clear">☁️ হাই ক্লিয়ার</option>
+                <option value="drop">💧 নেট ড্রপ</option>
+                <option value="smash">🔥 স্ম্যাশ ডিফেন্স</option>
+            </select>
+
+            <button id="hud-btn-pause" class="micro-circle" title="বিরতি (Pause)">
+                ⏸
+            </button>
+            <button id="hud-btn-sound" class="micro-circle" title="সাউন্ড অন/অফ">
+                🔊
+            </button>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         ২. মূল ২.৫ডি ইনডোর স্টেডিয়াম ক্যানভাস ও ভাসমান কলআউট
+    ====================================================================== -->
+    <main id="stage-container" class="relative w-full h-full flex items-center justify-center overflow-hidden">
+        <canvas id="stadiumCanvas" class="w-full h-full block"></canvas>
+
+        <!-- হক-আই স্টাইল লাইন কল / স্ম্যাশ / পয়েন্ট ভাসমান ব্যাজ -->
+        <div id="callout-layer" class="pointer-events-none fixed top-11 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-all duration-200 transform scale-90">
+            <div id="callout-badge" class="px-4 py-0.5 rounded-full text-xs sm:text-sm font-bold tracking-wide border border-white/40 shadow-2xl backdrop-blur-md">
+                POWER SMASH! 🔥
+            </div>
+        </div>
+
+        <!-- বিরতি (Pause) ওভারলে -->
+        <div id="pause-overlay" class="hidden fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+            <div class="glass-panel rounded-2xl p-5 max-w-xs w-full text-center shadow-2xl">
+                <div class="text-2xl mb-1">⏸️</div>
+                <h3 class="text-lg font-bold text-white mb-1">খেলা বিরতি</h3>
+                <p class="text-xs text-slate-400 mb-4">আপনি কি খেলা চালিয়ে যেতে চান?</p>
+                <div class="flex gap-2 justify-center">
+                    <button id="btn-resume" class="micro-pill !h-8 !px-4 bg-emerald-600/80 border-emerald-400 text-white">▶ চালিয়ে যান</button>
+                    <button id="btn-pause-menu" class="micro-pill !h-8 !px-4">🏠 মেনু</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================
+             ৩. অন-স্ক্রিন টাচ কন্ট্রোল (বাম জয়স্টিক + ডান সার্কুলার অ্যাকশন বাটন)
+        ================================================================== -->
+        <div id="controls-overlay" class="hidden fixed inset-x-0 bottom-2.5 sm:bottom-5 px-4 sm:px-8 flex items-end justify-between pointer-events-none z-20">
+            <!-- বাম পাশ: স্লিক ভার্চুয়াল অ্যানালগ জয়স্টিক -->
+            <div class="flex flex-col items-center pointer-events-auto">
+                <div id="joystick-base">
+                    <div id="joystick-stick"></div>
+                </div>
+                <span class="text-[9px] text-white/50 mt-1 tracking-wider font-medium">মুভমেন্ট</span>
+            </div>
+
+            <!-- ডান পাশ: আর্গোনমিক সার্কুলার শট, স্ম্যাশ ও জাম্প বাটন -->
+            <div class="relative w-36 h-32 sm:w-44 sm:h-36 pointer-events-auto">
+                <!-- জাম্প বাটন -->
+                <button id="ctrl-jump" class="ergo-btn w-13 h-13 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500/80 to-teal-700/85 absolute top-0 left-2">
+                    <span class="text-sm leading-none">▲</span>
+                    <span class="text-[10px] font-bold">জাম্প</span>
+                </button>
+
+                <!-- স্ম্যাশ বাটন -->
+                <button id="ctrl-smash" class="ergo-btn w-16 h-16 sm:w-18 sm:h-18 bg-gradient-to-br from-amber-500/85 via-orange-600/85 to-red-700/90 absolute top-0 right-0">
+                    <span class="text-base leading-none">🔥</span>
+                    <span class="text-[11px] font-bold">স্ম্যাশ</span>
+                </button>
+
+                <!-- শট / ড্রপ বাটন -->
+                <button id="ctrl-shot" class="ergo-btn w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-sky-500/85 to-blue-700/90 absolute bottom-0 left-9">
+                    <span class="text-base leading-none">🏸</span>
+                    <span class="text-[10px] font-bold">শট</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- =================================================================
+             ৪. মেইন লবি ও প্রো ক্যারেক্টার কাস্টমাইজেশন স্টুডিও
+        ================================================================== -->
+        <section id="lobby-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-40 flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto">
+            <div class="glass-panel rounded-3xl max-w-5xl w-full p-3.5 sm:p-5 shadow-2xl flex flex-col lg:flex-row gap-4 my-auto">
+
+                <!-- বাম প্যানেল: লাইভ ২.৫ডি ক্যারেক্টার কাস্টমাইজেশন ও রোস্টার ব্যানার -->
+                <div class="w-full lg:w-5/12 bg-slate-900/75 rounded-2xl p-3.5 border border-white/10 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2 gap-1.5">
+                        <span class="text-[11px] font-bold text-sky-300 bg-sky-500/10 border border-sky-400/30 px-2.5 py-0.5 rounded-full">
+                            ✨ চরিত্র কাস্টমাইজেশন
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <button id="lobby-btn-gallery" class="micro-pill text-cyan-300" title="৪টি রেফারেন্স ছবি ও স্টেডিয়াম গ্যালারি">
+                                <span>🖼️</span>
+                                <span>গ্যালারি</span>
+                            </button>
+                            <button id="lobby-btn-env" class="micro-pill text-amber-300">
+                                <span id="lobby-env-icon">☀️</span>
+                                <span id="lobby-env-text">দিন মোড</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- লাইভ অ্যানিমেটেড ক্যারেক্টার প্রিভিউ ক্যানভাস + রেফারেন্স রোস্টার ব্যাকড্রপ -->
+                    <div class="relative w-full h-40 sm:h-44 rounded-xl bg-gradient-to-b from-slate-800/80 to-emerald-950/70 border border-white/10 flex items-center justify-center overflow-hidden my-1">
+                        <!-- অপশনাল লোকাল রোস্টার রেফারেন্স ব্যানার (assets/roster-banner.jpg থাকলে দৃশ্যমান হবে) -->
+                        <img
+                            id="lobby-roster-bg"
+                            src="assets/roster-banner.jpg"
+                            alt="Badminton 3D Roster Lineup"
+                            class="hidden w-full h-full object-cover opacity-35 mix-blend-luminosity pointer-events-none"
+                            onerror="this.classList.add('hidden')"
+                        />
+                        <canvas id="charPreviewCanvas" width="220" height="175" class="relative z-10"></canvas>
+
+                        <!-- র‍্যাকেট স্ট্যাটস ব্যাজ -->
+                        <div class="absolute top-2 left-2 z-20 flex flex-col gap-1 text-[9px] bg-black/55 px-2 py-1 rounded-lg border border-white/10">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-400">পাওয়ার:</span>
+                                <div class="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div id="stat-power-bar" class="h-full bg-amber-400 w-4/5"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-400">স্পিড:</span>
+                                <div class="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div id="stat-speed-bar" class="h-full bg-sky-400 w-3/4"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-1.5 right-2 z-20 text-[9px] text-white/65 bg-black/45 px-2 py-0.5 rounded-full">লাইভ ২.৫ডি প্রিভিউ</span>
+                    </div>
+
+                    <!-- কাস্টমাইজেশন অপশনসমূহ (কমপ্যাক্ট গ্রিড) -->
+                    <div class="space-y-1.5 mt-1.5 text-[11px]">
+                        <!-- খেলোয়াড়ের নাম ও ছেলে / মেয়ে নির্বাচন -->
+                        <div class="flex items-center justify-between gap-2 bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-white/5">
+                            <input id="opt-player-name" type="text" maxlength="12" value="আপনি" placeholder="নাম লিখুন" class="bg-slate-900/90 text-white text-[11px] px-2 py-0.5 rounded-lg border border-white/15 w-24 outline-none focus:border-sky-400" title="খেলোয়াড়ের নাম" />
+                            <div class="flex gap-1">
+                                <button id="opt-boy" class="micro-pill !bg-blue-600/80 !border-blue-400 text-white">👦 ছেলে</button>
+                                <button id="opt-girl" class="micro-pill">👧 মেয়ে</button>
+                            </div>
+                        </div>
+
+                        <!-- ত্বকের রঙ (Skin Tone) -->
+                        <div class="flex items-center justify-between bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-white/5">
+                            <span class="text-slate-300 font-medium">ত্বকের রঙ:</span>
+                            <div id="skin-palette" class="flex gap-1.5">
+                                <button data-skin="#ffedd5" class="w-4 h-4 rounded-full bg-[#ffedd5] ring-1 ring-white cursor-pointer"></button>
+                                <button data-skin="#fed7aa" class="w-4 h-4 rounded-full bg-[#fed7aa] cursor-pointer"></button>
+                                <button data-skin="#f59e0b" class="w-4 h-4 rounded-full bg-[#f59e0b] cursor-pointer"></button>
+                                <button data-skin="#b45309" class="w-4 h-4 rounded-full bg-[#b45309] cursor-pointer"></button>
+                                <button data-skin="#78350f" class="w-4 h-4 rounded-full bg-[#78350f] cursor-pointer"></button>
+                            </div>
+                        </div>
+
+                        <!-- জার্সি ও পোশাকের রঙ (৮টি স্পোর্টস কিট) -->
+                        <div class="flex items-center justify-between bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-white/5">
+                            <span class="text-slate-300 font-medium">জার্সি কিট:</span>
+                            <div id="kit-palette" class="flex gap-1.5">
+                                <button data-jersey="#2563eb" data-shorts="#1e3a8a" data-stripe="#38bdf8" class="w-4 h-4 rounded-full bg-blue-600 ring-1 ring-white cursor-pointer" title="রয়্যাল ব্লু"></button>
+                                <button data-jersey="#dc2626" data-shorts="#7f1d1d" data-stripe="#fca5a5" class="w-4 h-4 rounded-full bg-red-600 cursor-pointer" title="ক্রিমসন রেড"></button>
+                                <button data-jersey="#059669" data-shorts="#064e3b" data-stripe="#6ee7b7" class="w-4 h-4 rounded-full bg-emerald-600 cursor-pointer" title="বেঙ্গল গ্রিন"></button>
+                                <button data-jersey="#d97706" data-shorts="#78350f" data-stripe="#fde047" class="w-4 h-4 rounded-full bg-amber-600 cursor-pointer" title="গোল্ডেন টাইগার"></button>
+                                <button data-jersey="#7c3aed" data-shorts="#4c1d95" data-stripe="#ddd6fe" class="w-4 h-4 rounded-full bg-violet-600 cursor-pointer" title="পার্পল প্রো"></button>
+                                <button data-jersey="#0891b2" data-shorts="#164e63" data-stripe="#a5f3fc" class="w-4 h-4 rounded-full bg-cyan-600 cursor-pointer" title="সায়ান ওয়েভ"></button>
+                                <button data-jersey="#db2777" data-shorts="#831843" data-stripe="#fbcfe8" class="w-4 h-4 rounded-full bg-pink-600 cursor-pointer" title="রোজ পিঙ্ক"></button>
+                                <button data-jersey="#1e293b" data-shorts="#090d16" data-stripe="#f59e0b" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-500 cursor-pointer" title="ব্ল্যাক নাইট"></button>
+                            </div>
+                        </div>
+
+                        <!-- প্রো র‍্যাকেট নির্বাচন -->
+                        <div class="flex items-center justify-between bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-white/5">
+                            <span class="text-slate-300 font-medium">প্রো র‍্যাকেট:</span>
+                            <div id="racket-palette" class="flex gap-1 flex-wrap justify-end">
+                                <button data-racket="#f59e0b" data-power="85" data-speed="78" class="micro-pill !h-5 !px-2 !text-[10px] !border-amber-400 text-amber-300">গোল্ড</button>
+                                <button data-racket="#38bdf8" data-power="75" data-speed="92" class="micro-pill !h-5 !px-2 !text-[10px] text-sky-300">অ্যারো</button>
+                                <button data-racket="#f43f5e" data-power="95" data-speed="70" class="micro-pill !h-5 !px-2 !text-[10px] text-rose-300">ফায়ার</button>
+                                <button data-racket="#10b981" data-power="80" data-speed="85" class="micro-pill !h-5 !px-2 !text-[10px] text-emerald-300">ভেনম</button>
+                                <button data-racket="#a855f7" data-power="88" data-speed="82" class="micro-pill !h-5 !px-2 !text-[10px] text-purple-300">ভোল্ট</button>
+                            </div>
+                        </div>
+
+                        <!-- স্নিকার / জুতার রঙ নির্বাচন -->
+                        <div class="flex items-center justify-between bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-white/5">
+                            <span class="text-slate-300 font-medium">স্নিকার কিট:</span>
+                            <div id="shoe-palette" class="flex gap-1.5">
+                                <button data-shoe="#ffffff" class="w-4 h-4 rounded-full bg-white ring-1 ring-sky-400 cursor-pointer" title="সাদা প্রো"></button>
+                                <button data-shoe="#38bdf8" class="w-4 h-4 rounded-full bg-sky-400 cursor-pointer" title="স্কাই ব্লু"></button>
+                                <button data-shoe="#fb923c" class="w-4 h-4 rounded-full bg-orange-400 cursor-pointer" title="অরেঞ্জ ফ্লেম"></button>
+                                <button data-shoe="#a3e635" class="w-4 h-4 rounded-full bg-lime-400 cursor-pointer" title="নিয়ন লাইম"></button>
+                                <button data-shoe="#f43f5e" class="w-4 h-4 rounded-full bg-rose-500 cursor-pointer" title="ক্রিমসন"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ডান প্যানেল: ৬টি গেম মোড ও সেটিংস -->
+                <div class="w-full lg:w-7/12 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-300 via-yellow-300 to-orange-400 bg-clip-text text-transparent">
+                                🏸 ব্যাডমিন্টন চ্যাম্পিয়নশিপ প্রো
+                            </h1>
+                            <span class="font-sport text-[10px] font-bold tracking-widest bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">
+                                BWF ARENA 2.5D
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">আপনার পছন্দের গেম মোড নির্বাচন করুন এবং ইনডোর অ্যারেনায় প্রবেশ করুন</p>
+
+                        <!-- ৬টি গেম মোড গ্রিড -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                            <button data-mode="single" class="mode-tile selected bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">🏸</span>
+                                    <span class="font-sport text-[9px] text-sky-300 bg-sky-500/15 px-1.5 py-0.5 rounded-full">QUICK</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">Single Match</div>
+                                    <div class="text-[10px] text-slate-400">দ্রুত ১ বনাম ১ ম্যাচ</div>
+                                </div>
+                            </button>
+
+                            <button data-mode="1v1" class="mode-tile bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">⚔️</span>
+                                    <span class="font-sport text-[9px] text-rose-300 bg-rose-500/15 px-1.5 py-0.5 rounded-full">RANKED</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">1 VS 1</div>
+                                    <div class="text-[10px] text-slate-400">র‍্যাঙ্কড ডুয়েল</div>
+                                </div>
+                            </button>
+
+                            <button data-mode="2v2" class="mode-tile bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">👥</span>
+                                    <span class="font-sport text-[9px] text-emerald-300 bg-emerald-500/15 px-1.5 py-0.5 rounded-full">DOUBLES</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">2 VS 2</div>
+                                    <div class="text-[10px] text-slate-400">ডাবলস রোটেশন</div>
+                                </div>
+                            </button>
+
+                            <button data-mode="tournament" class="mode-tile bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">🏆</span>
+                                    <span class="font-sport text-[9px] text-amber-300 bg-amber-500/15 px-1.5 py-0.5 rounded-full">8-CUP</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">Tournament</div>
+                                    <div class="text-[10px] text-slate-400">নকআউট কাপ টুর্নামেন্ট</div>
+                                </div>
+                            </button>
+
+                            <button data-mode="practice" class="mode-tile bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">🎯</span>
+                                    <span class="font-sport text-[9px] text-purple-300 bg-purple-500/15 px-1.5 py-0.5 rounded-full">MACHINE</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">Practice Mode</div>
+                                    <div class="text-[10px] text-slate-400">শাটল লঞ্চার ট্রেনিং</div>
+                                </div>
+                            </button>
+
+                            <button data-mode="multiplayer" class="mode-tile bg-slate-900/80 p-2.5 rounded-2xl text-left cursor-pointer flex flex-col justify-between h-20">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-lg">🎮</span>
+                                    <span class="font-sport text-[9px] text-cyan-300 bg-cyan-500/15 px-1.5 py-0.5 rounded-full">LOCAL 2P</span>
+                                </div>
+                                <div>
+                                    <div class="font-sport font-bold text-sm text-white leading-tight">Multiplayer</div>
+                                    <div class="text-[10px] text-slate-400">২ জন একসাথে খেলুন</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- মোড বিবরণ ও ম্যাচ অপশন বার -->
+                        <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                            <div id="lobby-mode-info" class="text-slate-300 leading-snug">
+                                <b class="text-sky-300">Single Match:</b> আপনার পছন্দমতো পয়েন্ট ও AI লেভেলে কুইক ম্যাচ খেলুন।
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <select id="cfg-difficulty" class="micro-pill bg-slate-950 text-white outline-none">
+                                    <option value="easy">সহজ AI</option>
+                                    <option value="medium" selected>মাঝারি AI</option>
+                                    <option value="hard">প্রো AI</option>
+                                </select>
+                                <select id="cfg-points" class="micro-pill bg-slate-950 text-amber-300 outline-none">
+                                    <option value="7">৭ পয়েন্ট</option>
+                                    <option value="11" selected>১১ পয়েন্ট</option>
+                                    <option value="21">২১ পয়েন্ট</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- খেলা শুরু করার বাটন -->
+                    <button id="btn-launch-game" class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 hover:brightness-110 active:scale-[0.99] transition font-bold text-base text-slate-950 shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2">
+                        <span>কোর্টে প্রবেশ করুন</span>
+                        <span class="font-sport text-xs bg-black/20 text-white px-2.5 py-0.5 rounded-full">START MATCH ▶</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             ৫. স্টেডিয়াম ও রেফারেন্স ছবি গ্যালারি মডাল (৪টি রেফারেন্স ছবি)
+        ================================================================== -->
+        <section id="gallery-overlay" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+            <div class="glass-panel rounded-3xl max-w-3xl w-full p-4 sm:p-5 shadow-2xl border border-white/15 my-auto">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-300">🖼️ স্টেডিয়াম ও রেফারেন্স গ্যালারি</h2>
+                        <p class="text-[11px] text-slate-400">
+                            GitHub-এর <code class="text-sky-300">assets/</code> ফোল্ডারে নিচের ৪টি ছবি রাখলে Vercel-এ স্বয়ংক্রিয়ভাবে যুক্ত হবে (অনুপস্থিত থাকলে ২.৫ডি ফলব্যাক সক্রিয় থাকে)।
+                        </p>
+                    </div>
+                    <button id="btn-close-gallery" class="micro-circle text-white">✕</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 text-xs">
+                    <!-- রেফারেন্স ১ -->
+                    <div class="bg-slate-900/85 border border-white/10 rounded-2xl p-2.5">
+                        <div class="h-32 rounded-xl overflow-hidden bg-slate-950 relative mb-2 flex items-center justify-center">
+                            <img
+                                src="assets/court-female.jpg"
+                                alt="কোর্টে খেলোয়াড় ও নেট"
+                                class="w-full h-full object-cover"
+                                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                            />
+                            <div class="hidden text-center px-3 text-[10px] text-slate-400">
+                                <div class="text-base mb-0.5">🏸</div>
+                                <div class="text-sky-300 font-semibold">assets/court-female.jpg</div>
+                                <div>সবুজ কোর্ট ও নেট রেফারেন্স (২.৫ডি ফলব্যাক সক্রিয়)</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-white">১. কোর্ট ও খেলোয়াড় দৃশ্য</div>
+                        <div class="text-[10px] text-slate-400">পাথ: <span class="text-amber-300">assets/court-female.jpg</span></div>
+                    </div>
+
+                    <!-- রেফারেন্স ২ -->
+                    <div class="bg-slate-900/85 border border-white/10 rounded-2xl p-2.5">
+                        <div class="h-32 rounded-xl overflow-hidden bg-slate-950 relative mb-2 flex items-center justify-center">
+                            <img
+                                src="assets/arena-day.jpg"
+                                alt="দিনের ইনডোর স্টেডিয়াম"
+                                class="w-full h-full object-cover"
+                                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                            />
+                            <div class="hidden text-center px-3 text-[10px] text-slate-400">
+                                <div class="text-base mb-0.5">☀️</div>
+                                <div class="text-sky-300 font-semibold">assets/arena-day.jpg</div>
+                                <div>দিনের ইনডোর স্টেডিয়াম রেফারেন্স (২.৫ডি ফলব্যাক সক্রিয়)</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-white">২. দিনের ইনডোর স্টেডিয়াম</div>
+                        <div class="text-[10px] text-slate-400">পাথ: <span class="text-amber-300">assets/arena-day.jpg</span></div>
+                    </div>
+
+                    <!-- রেফারেন্স ৩ -->
+                    <div class="bg-slate-900/85 border border-white/10 rounded-2xl p-2.5">
+                        <div class="h-32 rounded-xl overflow-hidden bg-slate-950 relative mb-2 flex items-center justify-center">
+                            <img
+                                src="assets/arena-night.jpg"
+                                alt="রাতের স্পটলাইট কোর্ট ও ম্যাচ"
+                                class="w-full h-full object-cover"
+                                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                            />
+                            <div class="hidden text-center px-3 text-[10px] text-slate-400">
+                                <div class="text-base mb-0.5">🌙</div>
+                                <div class="text-sky-300 font-semibold">assets/arena-night.jpg</div>
+                                <div>রাতের স্পটলাইট কোর্ট রেফারেন্স (২.৫ডি ফলব্যাক সক্রিয়)</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-white">৩. রাতের স্পটলাইট কোর্ট</div>
+                        <div class="text-[10px] text-slate-400">পাথ: <span class="text-amber-300">assets/arena-night.jpg</span></div>
+                    </div>
+
+                    <!-- রেফারেন্স ৪ -->
+                    <div class="bg-slate-900/85 border border-white/10 rounded-2xl p-2.5">
+                        <div class="h-32 rounded-xl overflow-hidden bg-slate-950 relative mb-2 flex items-center justify-center">
+                            <img
+                                src="assets/roster-banner.jpg"
+                                alt="খেলোয়াড় সিলেকশন লাইনআপ"
+                                class="w-full h-full object-cover"
+                                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                            />
+                            <div class="hidden text-center px-3 text-[10px] text-slate-400">
+                                <div class="text-base mb-0.5">👥</div>
+                                <div class="text-sky-300 font-semibold">assets/roster-banner.jpg</div>
+                                <div>প্লেয়ার সিলেকশন লাইনআপ রেফারেন্স (২.৫ডি ফলব্যাক সক্রিয়)</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-white">৪. প্লেয়ার সিলেকশন রোস্টার</div>
+                        <div class="text-[10px] text-slate-400">পাথ: <span class="text-amber-300">assets/roster-banner.jpg</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             ৬. টুর্নামেন্ট ব্র্যাকেট ও ম্যাচ ফলাফল মডাল
+        ================================================================== -->
+        <section id="result-overlay" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="glass-panel rounded-3xl p-5 sm:p-6 max-w-md w-full text-center shadow-2xl border border-white/15">
+                <div id="res-emoji" class="text-5xl mb-2">🏆</div>
+                <h2 id="res-heading" class="text-xl sm:text-2xl font-bold text-amber-300 mb-1">বিজয়ী!</h2>
+                <p id="res-summary" class="text-xs sm:text-sm text-slate-300 mb-4">চূড়ান্ত স্কোর: ১১ - ৭</p>
+
+                <!-- টুর্নামেন্ট ব্র্যাকেট প্রোগ্রেস ভিউ -->
+                <div id="bracket-box" class="hidden bg-slate-900/90 border border-white/10 rounded-2xl p-3 mb-4 text-left text-[11px]">
+                    <div class="text-amber-300 font-bold mb-2 text-center">🏆 চ্যাম্পিয়নশিপ নকআউট ব্র্যাকেট</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div id="brk-qf" class="p-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/10 text-emerald-300 font-semibold">কোয়ার্টার ফাইনাল</div>
+                        <div id="brk-sf" class="p-1.5 rounded-lg border border-white/10 bg-slate-800/60 text-slate-400">সেমিফাইনাল</div>
+                        <div id="brk-fn" class="p-1.5 rounded-lg border border-white/10 bg-slate-800/60 text-slate-400">গ্র্যান্ড ফাইনাল</div>
+                    </div>
+                </div>
+
+                <!-- ম্যাচ পরিসংখ্যান -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-900/70 rounded-xl p-2.5 mb-5 border border-white/5 text-xs">
+                    <div>
+                        <div id="stat-smashes" class="font-sport text-lg font-bold text-amber-400">0</div>
+                        <div class="text-[10px] text-slate-400">সুপার স্ম্যাশ</div>
+                    </div>
+                    <div>
+                        <div id="stat-longest-rally" class="font-sport text-lg font-bold text-sky-400">0</div>
+                        <div class="text-[10px] text-slate-400">দীর্ঘতম র‍্যালি</div>
+                    </div>
+                    <div>
+                        <div id="stat-accuracy" class="font-sport text-lg font-bold text-emerald-400">100%</div>
+                        <div class="text-[10px] text-slate-400">কোর্ট অ্যাকুরেসি</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2.5 justify-center">
+                    <button id="res-btn-menu" class="micro-pill !h-9 !px-5">🏠 মেইন মেনু</button>
+                    <button id="res-btn-next" class="micro-pill !h-9 !px-5 !bg-amber-500 !border-amber-300 !text-slate-950 font-bold">🔄 আবার খেলুন</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- =====================================================================
+         ৭. গেম ইঞ্জিন, রেফারেন্স অ্যাসেট লোডার, অডিও, ২.৫ডি রেন্ডারার ও AI
+    ====================================================================== -->
+    <script>
+        /**
+         * ===================================================================
+         * সেকশন ১: ক্যানভাস ও ২.৫ডি স্টেডিয়াম কনস্ট্যান্টস
+         * ===================================================================
+         */
+        const canvas = document.getElementById('stadiumCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('charPreviewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        // ভার্চুয়াল রেজোলিউশন
+        const VW = 1280;
+        const VH = 720;
+
+        // ২.৫ডি কোর্ট জ্যামিতি ও পার্সপেক্টিভ সীমানা
+        const NET_X = VW / 2;
+        const COURT_TOP_Y = 415;
+        const COURT_BOT_Y = 645;
+        const COURT_TOP_L = 185;
+        const COURT_TOP_R = VW - 185;
+        const COURT_BOT_L = 75;
+        const COURT_BOT_R = VW - 75;
+        const NET_HEIGHT = 118;
+
+        /**
+         * ===================================================================
+         * সেকশন ২: লোকাল রেফারেন্স ছবি লোডার (নিরাপদ ফলব্যাকসহ)
+         * ===================================================================
+         */
+        const refImages = {
+            courtFemale: { img: new Image(), loaded: false },
+            arenaDay: { img: new Image(), loaded: false },
+            arenaNight: { img: new Image(), loaded: false },
+            rosterBanner: { img: new Image(), loaded: false }
+        };
+
+        function loadOptionalReferenceAssets() {
+            const entries = [
+                { key: 'courtFemale', src: 'assets/court-female.jpg' },
+                { key: 'arenaDay', src: 'assets/arena-day.jpg' },
+                { key: 'arenaNight', src: 'assets/arena-night.jpg' },
+                { key: 'rosterBanner', src: 'assets/roster-banner.jpg' }
+            ];
+
+            entries.forEach(({ key, src }) => {
+                const target = refImages[key];
+                target.img.onload = () => {
+                    target.loaded = true;
+                    if (key === 'rosterBanner') {
+                        const rosterImgEl = document.getElementById('lobby-roster-bg');
+                        if (rosterImgEl) rosterImgEl.classList.remove('hidden');
+                    }
+                };
+                target.img.onerror = () => {
+                    // ফাইল না পাওয়া গেলে গেম নির্বিঘ্নে প্রসিডিউরাল ২.৫ডি রেন্ডারে চলবে
+                    target.loaded = false;
+                };
+                target.img.src = src;
+            });
+        }
+        loadOptionalReferenceAssets();
+
+        /**
+         * ===================================================================
+         * সেকশন ৩: গ্লোবাল গেম স্টেট ও ক্যারেক্টার কাস্টমাইজেশন কনফিগারেশন
+         * ===================================================================
+         */
+        const playerConfig = {
+            name: 'আপনি',
+            gender: 'boy',
+            skinColor: '#ffedd5',
+            hairColor: '#18181b',
+            jerseyColor: '#2563eb',
+            shortsColor: '#1e3a8a',
+            stripeColor: '#38bdf8',
+            shoeColor: '#ffffff',
+            racketColor: '#f59e0b',
+            racketPower: 85,
+            racketSpeed: 78
+        };
+
+        const state = {
+            screen: 'LOBBY',
+            mode: 'single',
+            difficulty: 'medium',
+            targetPoints: 11,
+            isNight: false,
+            soundOn: true,
+            cameraZoomMode: 0,
+
+            scoreLeft: 0,
+            scoreRight: 0,
+            serverTeam: 'left',
+            tournamentStage: 1,
+            practiceFeedType: 'random',
+
+            hitStopFrames: 0,
+            screenShake: 0,
+            camX: 0,
+            camY: 0,
+            camScale: 1,
+            netRipple: 0,
+            netRippleY: 480,
+            crowdExcitement: 0,
+            cameraFlashes: [],
+
+            stats: {
+                smashes: 0,
+                currentRallyHits: 0,
+                longestRally: 0,
+                shotsIn: 0,
+                shotsTotal: 0
+            }
+        };
+
+        /**
+         * ===================================================================
+         * সেকশন ৪: প্রসিডিউরাল ওয়েব অডিও সিন্থেসাইজার (Zero External Audio)
+         * ===================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            play(type) {
+                if (!state.soundOn) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    switch (type) {
+                        case 'ui':
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(680, now);
+                            osc.frequency.exponentialRampToValueAtTime(920, now + 0.04);
+                            gain.gain.setValueAtTime(0.12, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                            osc.start(now);
+                            osc.stop(now + 0.04);
+                            break;
+
+                        case 'racket_hit':
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(420, now);
+                            osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+                            gain.gain.setValueAtTime(0.35, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                            osc.start(now);
+                            osc.stop(now + 0.08);
+                            break;
+
+                        case 'smash':
+                            osc.type = 'sawtooth';
+                            osc.frequency.setValueAtTime(780, now);
+                            osc.frequency.exponentialRampToValueAtTime(52, now + 0.24);
+                            gain.gain.setValueAtTime(0.55, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+                            osc.start(now);
+                            osc.stop(now + 0.24);
+                            break;
+
+                        case 'net_cord':
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(145, now);
+                            osc.frequency.exponentialRampToValueAtTime(65, now + 0.12);
+                            gain.gain.setValueAtTime(0.22, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                            osc.start(now);
+                            osc.stop(now + 0.12);
+                            break;
+
+                        case 'squeak':
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(2100, now);
+                            osc.frequency.exponentialRampToValueAtTime(2800, now + 0.045);
+                            gain.gain.setValueAtTime(0.06, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+                            osc.start(now);
+                            osc.stop(now + 0.045);
+                            break;
+
+                        case 'jump':
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(190, now);
+                            osc.frequency.exponentialRampToValueAtTime(380, now + 0.11);
+                            gain.gain.setValueAtTime(0.18, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+                            osc.start(now);
+                            osc.stop(now + 0.11);
+                            break;
+
+                        case 'point':
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(587.33, now);
+                            osc.frequency.setValueAtTime(739.99, now + 0.09);
+                            osc.frequency.setValueAtTime(880.00, now + 0.18);
+                            gain.gain.setValueAtTime(0.28, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+                            osc.start(now);
+                            osc.stop(now + 0.36);
+                            break;
+                    }
+                } catch (_) {
+                    // অডিও কন্টেক্সট ত্রুটি উপেক্ষা করা হলো
+                }
+            }
+        }
+        const sfx = new SoundEngine();
+
+        /**
+         * ===================================================================
+         * সেকশন ৫: ইন-গেম কলআউট ব্যানার ও ভিজ্যুয়াল পার্টিকেল সিস্টেম
+         * ===================================================================
+         */
+        let calloutTimeout = null;
+        function showCallout(text, styleClass = 'bg-amber-400/90 text-slate-950') {
+            const layer = document.getElementById('callout-layer');
+            const badge = document.getElementById('callout-badge');
+            badge.textContent = text;
+            badge.className = `px-4 py-0.5 rounded-full text-xs sm:text-sm font-bold tracking-wide border border-white/40 shadow-2xl backdrop-blur-md ${styleClass}`;
+
+            layer.style.opacity = '1';
+            layer.style.transform = 'translate(-50%, 0) scale(1)';
+
+            clearTimeout(calloutTimeout);
+            calloutTimeout = setTimeout(() => {
+                layer.style.opacity = '0';
+                layer.style.transform = 'translate(-50%, -8px) scale(0.92)';
+            }, 1150);
+        }
+
+        const particles = [];
+        const shockwaves = [];
+        const confetti = [];
+
+        function emitParticles(x, y, color, count = 12, speed = 8) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const vel = (0.3 + Math.random() * 0.7) * speed;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * vel,
+                    vy: Math.sin(angle) * vel,
+                    life: 1.0,
+                    decay: 0.028 + Math.random() * 0.025,
+                    radius: 2 + Math.random() * 3.5,
+                    color
+                });
+            }
+        }
+
+        function emitShockwave(x, y, color = '#fb923c') {
+            shockwaves.push({
+                x,
+                y,
+                radius: 8,
+                maxRadius: 78,
+                alpha: 0.9,
+                color
+            });
+        }
+
+        function spawnConfettiBurst() {
+            const colors = ['#f59e0b', '#38bdf8', '#10b981', '#f43f5e', '#a855f7', '#fde047'];
+            for (let i = 0; i < 80; i++) {
+                confetti.push({
+                    x: VW * 0.2 + Math.random() * (VW * 0.6),
+                    y: 120 + Math.random() * 100,
+                    vx: (Math.random() - 0.5) * 9,
+                    vy: -4 - Math.random() * 6,
+                    w: 6 + Math.random() * 6,
+                    h: 4 + Math.random() * 4,
+                    rot: Math.random() * Math.PI,
+                    vRot: (Math.random() - 0.5) * 0.2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1.0
+                });
+            }
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ৬: বহু-স্তরবিশিষ্ট দর্শক গ্যালারি ও আলোককণা
+         * ===================================================================
+         */
+        const crowdMembers = [];
+        const CROWD_PALETTE = ['#ef4444', '#3b82f6', '#eab308', '#10b981', '#a855f7', '#f97316', '#ec4899', '#06b6d4', '#e2e8f0'];
+
+        for (let tier = 0; tier < 4; tier++) {
+            const baseY = 165 + tier * 42;
+            const cols = 34 + tier * 3;
+            for (let c = 0; c < cols; c++) {
+                const bx = 55 + (c / (cols - 1)) * (VW - 110) + (Math.random() * 10 - 5);
+                crowdMembers.push({
+                    x: bx,
+                    y: baseY,
+                    shirt: CROWD_PALETTE[Math.floor(Math.random() * CROWD_PALETTE.length)],
+                    skin: Math.random() > 0.4 ? '#fed7aa' : '#d97706',
+                    phase: Math.random() * Math.PI * 2,
+                    scale: 0.68 + tier * 0.085,
+                    hasClapper: Math.random() > 0.72
+                });
+            }
+        }
+
+        const dustMotes = [];
+        for (let i = 0; i < 45; i++) {
+            dustMotes.push({
+                x: Math.random() * VW,
+                y: Math.random() * (VH * 0.75),
+                r: 1 + Math.random() * 2,
+                vx: 0.15 + Math.random() * 0.25,
+                vy: -0.1 + Math.random() * 0.2,
+                alpha: 0.2 + Math.random() * 0.4
+            });
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ৭: খেলোয়াড় (Athlete) ও শাটলকক (Shuttlecock) ফিজিক্স মডেল
+         * ===================================================================
+         */
+        let players = [];
+
+        function createPlayer(cfg) {
+            return {
+                id: cfg.id,
+                name: cfg.name,
+                team: cfg.team,
+                isHuman: cfg.isHuman || false,
+                controlSlot: cfg.controlSlot || 1,
+                doublesRole: cfg.doublesRole || 'single',
+
+                x: cfg.x,
+                y: cfg.y,
+                z: 0,
+                vx: 0,
+                vy: 0,
+                vz: 0,
+                prevVx: 0,
+
+                baseSpeed: cfg.baseSpeed || 6.0,
+                jumpPower: 15.2,
+                smashPower: cfg.smashPower || 1.0,
+
+                gender: cfg.gender || 'boy',
+                skinColor: cfg.skinColor || '#ffedd5',
+                hairColor: cfg.hairColor || '#18181b',
+                jerseyColor: cfg.jerseyColor || '#2563eb',
+                shortsColor: cfg.shortsColor || '#1e3a8a',
+                stripeColor: cfg.stripeColor || '#38bdf8',
+                shoeColor: cfg.shoeColor || '#ffffff',
+                racketColor: cfg.racketColor || '#f59e0b',
+
+                stridePhase: 0,
+                idleBreath: Math.random() * Math.PI * 2,
+                swingFrames: 0,
+                swingMaxFrames: 18,
+                swingKind: 'shot',
+                lungeTilt: 0,
+                ribbonWave: 0
+            };
+        }
+
+        const shuttle = {
+            x: 340,
+            y: 520,
+            z: 72,
+            vx: 0,
+            vy: 0,
+            vz: 0,
+            heading: 0,
+            spin: 0,
+            isSmash: false,
+            inServeState: true,
+            lastHitterTeam: null,
+            trail: []
+        };
+
+        /**
+         * ===================================================================
+         * সেকশন ৮: ইনপুট হ্যান্ডলার (ভার্চুয়াল জয়স্টিক, টাচ বাটন ও কীবোর্ড)
+         * ===================================================================
+         */
+        const joyInput = { x: 0, y: 0 };
+        const keyMap = {};
+
+        window.addEventListener('keydown', (e) => {
+            keyMap[e.code] = true;
+            if (state.screen !== 'PLAYING') return;
+
+            const p1 = players.find(p => p.isHuman && p.controlSlot === 1);
+            const p2 = players.find(p => p.isHuman && p.controlSlot === 2);
+
+            if (state.mode === 'multiplayer') {
+                if ((e.code === 'KeyR' || e.code === 'KeyW') && p1) executeJump(p1);
+                if ((e.code === 'KeyF' || e.code === 'KeyZ') && p1) executeSwing(p1, 'shot');
+                if ((e.code === 'KeyG' || e.code === 'KeyX' || e.code === 'KeyE') && p1) executeSwing(p1, 'smash');
+
+                if ((e.code === 'ArrowUp' || e.code === 'ShiftRight') && p2) executeJump(p2);
+                if ((e.code === 'Enter' || e.code === 'KeyM') && p2) executeSwing(p2, 'shot');
+                if ((e.code === 'KeyN' || e.code === 'KeyK') && p2) executeSwing(p2, 'smash');
+            } else if (p1) {
+                if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') {
+                    e.preventDefault();
+                    executeJump(p1);
+                }
+                if (e.code === 'KeyJ' || e.code === 'KeyZ' || e.code === 'ShiftLeft') {
+                    e.preventDefault();
+                    executeSwing(p1, 'shot');
+                }
+                if (e.code === 'KeyK' || e.code === 'KeyX' || e.code === 'KeyE') {
+                    e.preventDefault();
+                    executeSwing(p1, 'smash');
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keyMap[e.code] = false;
+        });
+
+        const joyBase = document.getElementById('joystick-base');
+        const joyStick = document.getElementById('joystick-stick');
+        let activeJoyId = null;
+
+        function moveJoyStick(clientX, clientY) {
+            const rect = joyBase.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const maxR = rect.width / 2 - 18;
+
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxR) {
+                dx = (dx / dist) * maxR;
+                dy = (dy / dist) * maxR;
+            }
+            joyStick.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+            joyInput.x = dx / maxR;
+            joyInput.y = dy / maxR;
+        }
+
+        function releaseJoyStick() {
+            activeJoyId = null;
+            joyStick.style.transform = 'translate3d(0px, 0px, 0)';
+            joyInput.x = 0;
+            joyInput.y = 0;
+        }
+
+        joyBase.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            activeJoyId = t.identifier;
+            moveJoyStick(t.clientX, t.clientY);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (activeJoyId === null) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeJoyId) {
+                    moveJoyStick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeJoyId) {
+                    releaseJoyStick();
+                    break;
+                }
+            }
+        });
+
+        let mouseJoyDown = false;
+        joyBase.addEventListener('mousedown', (e) => {
+            mouseJoyDown = true;
+            moveJoyStick(e.clientX, e.clientY);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (mouseJoyDown) moveJoyStick(e.clientX, e.clientY);
+        });
+        window.addEventListener('mouseup', () => {
+            if (mouseJoyDown) {
+                mouseJoyDown = false;
+                releaseJoyStick();
+            }
+        });
+
+        function attachErgoButton(btnId, callback) {
+            const el = document.getElementById(btnId);
+            const start = (e) => {
+                e.preventDefault();
+                el.classList.add('pressed');
+                callback();
+            };
+            const end = (e) => {
+                e.preventDefault();
+                el.classList.remove('pressed');
+            };
+            el.addEventListener('touchstart', start, { passive: false });
+            el.addEventListener('touchend', end, { passive: false });
+            el.addEventListener('mousedown', start);
+            el.addEventListener('mouseup', end);
+            el.addEventListener('mouseleave', end);
+        }
+
+        attachErgoButton('ctrl-jump', () => {
+            const p1 = players.find(p => p.isHuman && p.controlSlot === 1);
+            if (state.screen === 'PLAYING' && p1) executeJump(p1);
+        });
+        attachErgoButton('ctrl-shot', () => {
+            const p1 = players.find(p => p.isHuman && p.controlSlot === 1);
+            if (state.screen === 'PLAYING' && p1) executeSwing(p1, 'shot');
+        });
+        attachErgoButton('ctrl-smash', () => {
+            const p1 = players.find(p => p.isHuman && p.controlSlot === 1);
+            if (state.screen === 'PLAYING' && p1) executeSwing(p1, 'smash');
+        });
+
+        /**
+         * ===================================================================
+         * সেকশন ৯: খেলোয়াড়ের জাম্প, অ্যাডাপ্টিভ শট ও পাওয়ার স্ম্যাশ মেকানিক্স
+         * ===================================================================
+         */
+        function executeJump(p) {
+            if (!p || shuttle.inServeState) return;
+            if (p.z === 0) {
+                p.vz = p.jumpPower;
+                sfx.play('jump');
+                emitParticles(p.x, p.y, 'rgba(255,255,255,0.5)', 6, 4);
+            }
+        }
+
+        function executeSwing(p, requestedType) {
+            if (!p || p.swingFrames > 0) return;
+            p.swingFrames = p.swingMaxFrames;
+            p.swingKind = requestedType;
+
+            if (shuttle.inServeState && state.serverTeam === p.team) {
+                shuttle.inServeState = false;
+                const dir = p.team === 'left' ? 1 : -1;
+                shuttle.vx = dir * (11.2 + Math.random() * 1.4);
+                shuttle.vy = (Math.random() - 0.5) * 2.8;
+                shuttle.vz = 12.2;
+                shuttle.isSmash = false;
+                shuttle.lastHitterTeam = p.team;
+                state.stats.currentRallyHits = 1;
+                sfx.play('racket_hit');
+                emitParticles(shuttle.x, shuttle.y - shuttle.z, '#ffffff', 10, 6);
+                return;
+            }
+
+            if (shuttle.inServeState) return;
+
+            const dir = p.team === 'left' ? 1 : -1;
+            const hitCenterX = p.x + dir * 28;
+            const hitCenterY = p.y;
+            const hitCenterZ = p.z + 58;
+
+            const dx = shuttle.x - hitCenterX;
+            const dy = (shuttle.y - hitCenterY) * 1.35;
+            const dz = shuttle.z - hitCenterZ;
+            const dist3D = Math.hypot(dx, dy, dz);
+
+            if (dist3D <= 92) {
+                const distToNet = Math.abs(NET_X - shuttle.x);
+                const targetDepthY = COURT_TOP_Y + 35 + Math.random() * (COURT_BOT_Y - COURT_TOP_Y - 70);
+                const aimVy = (targetDepthY - shuttle.y) * 0.048;
+
+                const isSmashValid = (requestedType === 'smash') && (p.z > 12 || shuttle.z > 82);
+
+                if (isSmashValid) {
+                    if (p.z === 0) p.vz = 10.5;
+
+                    const powerMult = 0.92 + (p.smashPower - 0.75) * 0.4;
+                    shuttle.vx = dir * (18.8 * powerMult + Math.random() * 1.8);
+                    shuttle.vy = aimVy * 1.25;
+                    shuttle.vz = shuttle.z > 125 ? -6.2 : -2.6;
+                    shuttle.isSmash = true;
+                    p.swingKind = 'smash';
+
+                    state.hitStopFrames = 3;
+                    state.screenShake = 8;
+                    state.crowdExcitement = 1.0;
+                    triggerCameraFlash();
+
+                    sfx.play('smash');
+                    emitShockwave(shuttle.x, shuttle.y - shuttle.z, '#f97316');
+                    emitParticles(shuttle.x, shuttle.y - shuttle.z, '#fb923c', 22, 11);
+
+                    if (p.isHuman && p.controlSlot === 1) {
+                        state.stats.smashes++;
+                        showCallout('SUPER SMASH! 🔥', 'bg-gradient-to-r from-amber-400 via-orange-500 to-red-600 text-white');
+                    }
+                } else if (distToNet < 165 && shuttle.z < 115) {
+                    p.swingKind = 'drop';
+                    shuttle.vx = dir * (6.8 + Math.random() * 1.2);
+                    shuttle.vy = aimVy * 0.9;
+                    shuttle.vz = 7.4;
+                    shuttle.isSmash = false;
+                    sfx.play('racket_hit');
+                    emitParticles(shuttle.x, shuttle.y - shuttle.z, '#38bdf8', 8, 5);
+                } else {
+                    p.swingKind = 'shot';
+                    const driveX = 10.2 + (distToNet / 520) * 6.0;
+                    shuttle.vx = dir * driveX;
+                    shuttle.vy = aimVy;
+                    shuttle.vz = 12.0 + Math.random() * 1.8;
+                    shuttle.isSmash = false;
+                    sfx.play('racket_hit');
+                    emitParticles(shuttle.x, shuttle.y - shuttle.z, '#f8fafc', 10, 6);
+                }
+
+                shuttle.lastHitterTeam = p.team;
+                state.stats.currentRallyHits++;
+                if (state.stats.currentRallyHits > state.stats.longestRally) {
+                    state.stats.longestRally = state.stats.currentRallyHits;
+                }
+            }
+        }
+
+        function triggerCameraFlash() {
+            for (let i = 0; i < 4; i++) {
+                state.cameraFlashes.push({
+                    x: 80 + Math.random() * (VW - 160),
+                    y: 155 + Math.random() * 160,
+                    alpha: 1.0,
+                    size: 16 + Math.random() * 18
+                });
+            }
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১০: ম্যাচ ও টুর্নামেন্ট সেটআপ এবং প্র্যাকটিস শাটল লঞ্চার
+         * ===================================================================
+         */
+        function initMatch() {
+            players = [];
+            state.scoreLeft = 0;
+            state.scoreRight = 0;
+            state.stats = { smashes: 0, currentRallyHits: 0, longestRally: 0, shotsIn: 0, shotsTotal: 0 };
+            updateScoreUI();
+
+            const speedFactor = 0.88 + (playerConfig.racketSpeed / 100) * 0.25;
+            const powerFactor = 0.85 + (playerConfig.racketPower / 100) * 0.3;
+
+            const customName = (playerConfig.name || 'আপনি').trim() || 'আপনি';
+            document.getElementById('hud-name-left').textContent = customName;
+            players.push(createPlayer({
+                id: 'human_p1',
+                name: customName,
+                team: 'left',
+                isHuman: true,
+                controlSlot: 1,
+                doublesRole: state.mode === '2v2' ? 'front' : 'single',
+                x: state.mode === '2v2' ? 400 : 320,
+                y: state.mode === '2v2' ? 480 : 525,
+                baseSpeed: 6.2 * speedFactor,
+                smashPower: powerFactor,
+                ...playerConfig
+            }));
+
+            if (state.mode === '2v2') {
+                players.push(createPlayer({
+                    id: 'ai_partner',
+                    name: 'পার্টনার',
+                    team: 'left',
+                    isHuman: false,
+                    doublesRole: 'back',
+                    x: 215,
+                    y: 575,
+                    gender: playerConfig.gender === 'boy' ? 'girl' : 'boy',
+                    jerseyColor: playerConfig.jerseyColor,
+                    shortsColor: playerConfig.shortsColor,
+                    stripeColor: playerConfig.stripeColor,
+                    racketColor: '#38bdf8'
+                }));
+
+                players.push(createPlayer({
+                    id: 'ai_opp_front',
+                    name: 'প্রতিপক্ষ ১',
+                    team: 'right',
+                    isHuman: false,
+                    doublesRole: 'front',
+                    x: 880,
+                    y: 480,
+                    gender: 'boy',
+                    jerseyColor: '#e11d48',
+                    shortsColor: '#881337',
+                    stripeColor: '#fda4af',
+                    racketColor: '#f43f5e'
+                }));
+                players.push(createPlayer({
+                    id: 'ai_opp_back',
+                    name: 'প্রতিপক্ষ ২',
+                    team: 'right',
+                    isHuman: false,
+                    doublesRole: 'back',
+                    x: 1065,
+                    y: 575,
+                    gender: 'girl',
+                    jerseyColor: '#e11d48',
+                    shortsColor: '#881337',
+                    stripeColor: '#fda4af',
+                    racketColor: '#f43f5e'
+                }));
+            } else if (state.mode === 'multiplayer') {
+                players.push(createPlayer({
+                    id: 'human_p2',
+                    name: 'প্লেয়ার ২',
+                    team: 'right',
+                    isHuman: true,
+                    controlSlot: 2,
+                    x: 960,
+                    y: 525,
+                    gender: 'girl',
+                    jerseyColor: '#e11d48',
+                    shortsColor: '#881337',
+                    stripeColor: '#fda4af',
+                    racketColor: '#38bdf8'
+                }));
+            } else if (state.mode === 'practice') {
+                // প্র্যাকটিস মোডে ডান পাশে শাটল লঞ্চার মেশিন থাকবে
+            } else {
+                const stageKits = [
+                    { name: 'ক্লাব চ্যালেঞ্জার', jersey: '#e11d48', shorts: '#881337', stripe: '#fda4af', gender: 'boy' },
+                    { name: 'ন্যাশনাল প্রো', jersey: '#7c3aed', shorts: '#4c1d95', stripe: '#ddd6fe', gender: 'girl' },
+                    { name: 'ওয়ার্ল্ড চ্যাম্পিয়ন', jersey: '#0f172a', shorts: '#020617', stripe: '#f59e0b', gender: 'boy' }
+                ];
+                const kit = state.mode === 'tournament' ? stageKits[(state.tournamentStage - 1) % 3] : stageKits[0];
+                players.push(createPlayer({
+                    id: 'ai_opponent',
+                    name: kit.name,
+                    team: 'right',
+                    isHuman: false,
+                    x: 960,
+                    y: 525,
+                    gender: kit.gender,
+                    jerseyColor: kit.jersey,
+                    shortsColor: kit.shorts,
+                    stripeColor: kit.stripe,
+                    racketColor: '#f43f5e'
+                }));
+            }
+
+            const feedSelect = document.getElementById('practice-feed-select');
+            if (state.mode === 'practice') {
+                feedSelect.classList.remove('hidden');
+            } else {
+                feedSelect.classList.add('hidden');
+            }
+
+            const modeLabels = {
+                single: 'SINGLE',
+                '1v1': '1 VS 1',
+                '2v2': '2 VS 2',
+                tournament: `CUP • R${state.tournamentStage}`,
+                practice: 'PRACTICE',
+                multiplayer: '2P LOCAL'
+            };
+            document.getElementById('hud-mode-tag').textContent = state.mode === 'practice'
+                ? 'PRACTICE MACHINE'
+                : `${modeLabels[state.mode]} • ${state.targetPoints} পয়েন্ট`;
+            document.getElementById('hud-name-right').textContent = state.mode === 'practice'
+                ? 'শাটল মেশিন'
+                : (players.find(p => p.team === 'right')?.name || 'প্রতিপক্ষ');
+
+            prepareRally('left');
+        }
+
+        function updateScoreUI() {
+            document.getElementById('hud-score-left').textContent = state.scoreLeft;
+            document.getElementById('hud-score-right').textContent = state.scoreRight;
+            document.getElementById('hud-serve-left').style.opacity = state.serverTeam === 'left' ? '1' : '0';
+            document.getElementById('hud-serve-right').style.opacity = state.serverTeam === 'right' ? '1' : '0';
+        }
+
+        function firePracticeShuttle() {
+            shuttle.inServeState = false;
+            shuttle.isSmash = false;
+            shuttle.x = 1045;
+            shuttle.y = 525;
+            shuttle.z = 88;
+            shuttle.lastHitterTeam = 'right';
+            shuttle.trail = [];
+
+            const feed = state.practiceFeedType === 'random'
+                ? ['clear', 'drop', 'smash'][Math.floor(Math.random() * 3)]
+                : state.practiceFeedType;
+
+            const targetY = COURT_TOP_Y + 45 + Math.random() * (COURT_BOT_Y - COURT_TOP_Y - 90);
+            const vy = (targetY - shuttle.y) * 0.045;
+
+            if (feed === 'clear') {
+                shuttle.vx = -(11.5 + Math.random() * 1.5);
+                shuttle.vy = vy;
+                shuttle.vz = 13.5;
+            } else if (feed === 'drop') {
+                shuttle.vx = -(8.2 + Math.random() * 0.8);
+                shuttle.vy = vy;
+                shuttle.vz = 8.4;
+            } else {
+                shuttle.vx = -(16.5 + Math.random() * 1.5);
+                shuttle.vy = vy;
+                shuttle.vz = 3.2;
+                shuttle.isSmash = true;
+            }
+
+            sfx.play('racket_hit');
+            emitParticles(1045, 525 - 88, '#38bdf8', 12, 7);
+        }
+
+        function prepareRally(servingTeam) {
+            state.serverTeam = servingTeam;
+            state.stats.currentRallyHits = 0;
+            shuttle.inServeState = true;
+            shuttle.isSmash = false;
+            shuttle.vx = 0;
+            shuttle.vy = 0;
+            shuttle.vz = 0;
+            shuttle.trail = [];
+            updateScoreUI();
+
+            if (state.mode === 'practice') {
+                firePracticeShuttle();
+                return;
+            }
+
+            const server = players.find(p => p.team === servingTeam);
+            if (server) {
+                const dir = servingTeam === 'left' ? 1 : -1;
+                shuttle.x = server.x + dir * 28;
+                shuttle.y = server.y;
+                shuttle.z = server.z + 60;
+
+                if (!server.isHuman) {
+                    setTimeout(() => {
+                        if (state.screen === 'PLAYING' && shuttle.inServeState && state.serverTeam === servingTeam) {
+                            executeSwing(server, 'shot');
+                        }
+                    }, 850);
+                }
+            }
+        }
+
+        function awardPoint(winnerTeam, lineCallText = 'IN!') {
+            if (state.screen !== 'PLAYING') return;
+            state.screen = 'POINT_PAUSE';
+            state.crowdExcitement = 1.0;
+            triggerCameraFlash();
+
+            if (state.mode === 'practice') {
+                if (winnerTeam === 'left') {
+                    state.scoreLeft++;
+                    updateScoreUI();
+                    sfx.play('point');
+                    showCallout(`${lineCallText} দারুণ রিটার্ন! +১`, 'bg-emerald-500/90 text-white');
+                } else {
+                    showCallout('আবার চেষ্টা করুন!', 'bg-slate-800/90 text-slate-200');
+                }
+                setTimeout(() => {
+                    if (state.screen === 'POINT_PAUSE') {
+                        state.screen = 'PLAYING';
+                        prepareRally('right');
+                    }
+                }, 850);
+                return;
+            }
+
+            if (winnerTeam === 'left') {
+                state.scoreLeft++;
+                state.stats.shotsIn++;
+                sfx.play('point');
+                showCallout(`${lineCallText} আপনার পয়েন্ট! 🎉`, 'bg-emerald-500/90 text-white');
+            } else {
+                state.scoreRight++;
+                sfx.play('net_cord');
+                showCallout(`${lineCallText} প্রতিপক্ষের পয়েন্ট`, 'bg-rose-600/90 text-white');
+            }
+            state.stats.shotsTotal++;
+            updateScoreUI();
+
+            const reachedTarget = state.scoreLeft >= state.targetPoints || state.scoreRight >= state.targetPoints;
+            if (reachedTarget) {
+                setTimeout(() => finishMatch(state.scoreLeft >= state.targetPoints ? 'left' : 'right'), 950);
+            } else {
+                setTimeout(() => {
+                    if (state.screen === 'POINT_PAUSE') {
+                        state.screen = 'PLAYING';
+                        prepareRally(winnerTeam);
+                    }
+                }, 1050);
+            }
+        }
+
+        function finishMatch(winnerTeam) {
+            state.screen = 'GAMEOVER';
+            const overlay = document.getElementById('result-overlay');
+            const emoji = document.getElementById('res-emoji');
+            const heading = document.getElementById('res-heading');
+            const summary = document.getElementById('res-summary');
+            const nextBtn = document.getElementById('res-btn-next');
+            const bracketBox = document.getElementById('bracket-box');
+
+            document.getElementById('stat-smashes').textContent = state.stats.smashes;
+            document.getElementById('stat-longest-rally').textContent = state.stats.longestRally;
+            const acc = state.stats.shotsTotal > 0 ? Math.round((state.stats.shotsIn / state.stats.shotsTotal) * 100) : 100;
+            document.getElementById('stat-accuracy').textContent = `${acc}%`;
+
+            overlay.classList.remove('hidden');
+
+            if (state.mode === 'tournament') {
+                bracketBox.classList.remove('hidden');
+                const stageNames = { 1: 'কোয়ার্টার ফাইনাল', 2: 'সেমিফাইনাল', 3: 'গ্র্যান্ড ফাইনাল' };
+
+                ['brk-qf', 'brk-sf', 'brk-fn'].forEach((id, idx) => {
+                    const el = document.getElementById(id);
+                    if (idx + 1 <= state.tournamentStage) {
+                        el.className = 'p-1.5 rounded-lg border border-emerald-400/60 bg-emerald-500/20 text-emerald-300 font-bold';
+                    } else {
+                        el.className = 'p-1.5 rounded-lg border border-white/10 bg-slate-800/60 text-slate-400';
+                    }
+                });
+
+                if (winnerTeam === 'left') {
+                    if (state.tournamentStage < 3) {
+                        emoji.textContent = '🏅';
+                        heading.textContent = `${stageNames[state.tournamentStage]} জয়ী!`;
+                        summary.textContent = `স্কোর: ${state.scoreLeft} - ${state.scoreRight} • পরবর্তী রাউন্ডে উত্তীর্ণ`;
+                        nextBtn.textContent = '▶ পরবর্তী রাউন্ড';
+                        nextBtn.onclick = () => {
+                            state.tournamentStage++;
+                            overlay.classList.add('hidden');
+                            state.screen = 'PLAYING';
+                            initMatch();
+                            showCallout(`${stageNames[state.tournamentStage]} শুরু!`, 'bg-amber-400 text-slate-950');
+                        };
+                    } else {
+                        emoji.textContent = '🏆';
+                        heading.textContent = 'টুর্নামেন্ট চ্যাম্পিয়ন!';
+                        summary.textContent = `ফাইনাল স্কোর: ${state.scoreLeft} - ${state.scoreRight} • অভিনন্দন!`;
+                        spawnConfettiBurst();
+                        nextBtn.textContent = '🔄 নতুন টুর্নামেন্ট';
+                        nextBtn.onclick = () => {
+                            state.tournamentStage = 1;
+                            overlay.classList.add('hidden');
+                            state.screen = 'PLAYING';
+                            initMatch();
+                        };
+                    }
+                } else {
+                    emoji.textContent = '💔';
+                    heading.textContent = 'টুর্নামেন্ট সমাপ্ত';
+                    summary.textContent = `${stageNames[state.tournamentStage]}-এ পরাজিত (${state.scoreLeft} - ${state.scoreRight})`;
+                    nextBtn.textContent = '🔄 আবার চেষ্টা করুন';
+                    nextBtn.onclick = () => {
+                        state.tournamentStage = 1;
+                        overlay.classList.add('hidden');
+                        state.screen = 'PLAYING';
+                        initMatch();
+                    };
+                }
+            } else {
+                bracketBox.classList.add('hidden');
+                if (winnerTeam === 'left') {
+                    emoji.textContent = '🏆';
+                    heading.textContent = 'অভিনন্দন! আপনি জিতেছেন!';
+                    spawnConfettiBurst();
+                } else {
+                    emoji.textContent = '🥈';
+                    heading.textContent = state.mode === 'multiplayer' ? 'প্লেয়ার ২ জয়ী!' : 'প্রতিপক্ষ জয়ী!';
+                }
+                summary.textContent = `চূড়ান্ত স্কোর: ${state.scoreLeft} - ${state.scoreRight}`;
+                nextBtn.textContent = '🔄 আবার খেলুন';
+                nextBtn.onclick = () => {
+                    overlay.classList.add('hidden');
+                    state.screen = 'PLAYING';
+                    initMatch();
+                };
+            }
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১১: ৬০ FPS ফিজিক্স, AI স্টেট মেশিন ও ডাবলস রোটেশন লজিক
+         * ===================================================================
+         */
+        function stepSimulation() {
+            if (state.hitStopFrames > 0) {
+                state.hitStopFrames--;
+                return;
+            }
+
+            updateParticlesAndEffects();
+
+            if (state.screen !== 'PLAYING' && state.screen !== 'POINT_PAUSE') return;
+
+            const aiProfiles = {
+                easy: { speed: 3.9, lerp: 0.08, smashChance: 0.12 },
+                medium: { speed: 5.4, lerp: 0.14, smashChance: 0.38 },
+                hard: { speed: 7.0, lerp: 0.22, smashChance: 0.72 }
+            }[state.difficulty];
+
+            players.forEach(p => {
+                p.prevVx = p.vx;
+
+                if (p.isHuman) {
+                    let mx = 0, my = 0;
+                    if (p.controlSlot === 1) {
+                        mx = joyInput.x;
+                        my = joyInput.y;
+                        if (keyMap['KeyA'] || (state.mode !== 'multiplayer' && keyMap['ArrowLeft'])) mx = -1;
+                        if (keyMap['KeyD'] || (state.mode !== 'multiplayer' && keyMap['ArrowRight'])) mx = 1;
+                        if (keyMap['KeyS'] || (state.mode !== 'multiplayer' && keyMap['ArrowDown'])) my = 1;
+                        if (keyMap['KeyQ']) my = -1;
+                    } else if (p.controlSlot === 2) {
+                        if (keyMap['ArrowLeft']) mx = -1;
+                        if (keyMap['ArrowRight']) mx = 1;
+                        if (keyMap['ArrowDown']) my = 1;
+                        if (keyMap['KeyO']) my = -1;
+                    }
+                    p.vx = mx * p.baseSpeed;
+                    p.vy = my * (p.baseSpeed * 0.76);
+                } else {
+                    let homeX = p.team === 'left' ? 240 : 980;
+                    let homeY = 525;
+
+                    if (state.mode === '2v2') {
+                        if (p.doublesRole === 'front') {
+                            homeX = p.team === 'left' ? 420 : 860;
+                            homeY = 475;
+                        } else {
+                            homeX = p.team === 'left' ? 215 : 1065;
+                            homeY = 575;
+                        }
+                    }
+
+                    let targetX = homeX;
+                    let targetY = homeY;
+
+                    const isShuttleOnMySide = (p.team === 'left' && shuttle.x < NET_X + 25) || (p.team === 'right' && shuttle.x > NET_X - 25);
+                    let activeChaser = isShuttleOnMySide && !shuttle.inServeState;
+
+                    if (state.mode === '2v2' && activeChaser) {
+                        const netDist = Math.abs(shuttle.x - NET_X);
+                        if (p.doublesRole === 'front' && netDist > 275) activeChaser = false;
+                        if (p.doublesRole === 'back' && netDist <= 275) activeChaser = false;
+                    }
+
+                    if (activeChaser) {
+                        targetX = shuttle.x + shuttle.vx * 6.5;
+                        targetY = shuttle.y + shuttle.vy * 4.5;
+
+                        const dist = Math.hypot(shuttle.x - p.x, (shuttle.y - p.y) * 1.35);
+                        if (dist < 82 && shuttle.z < 165 && p.swingFrames === 0) {
+                            const trySmash = shuttle.z > 95 && Math.random() < aiProfiles.smashChance;
+                            executeSwing(p, trySmash ? 'smash' : 'shot');
+                        }
+                    }
+
+                    const dx = targetX - p.x;
+                    const dy = targetY - p.y;
+                    p.vx = Math.abs(dx) > 5 ? Math.sign(dx) * Math.min(aiProfiles.speed, Math.abs(dx) * aiProfiles.lerp) : 0;
+                    p.vy = Math.abs(dy) > 5 ? Math.sign(dy) * Math.min(aiProfiles.speed * 0.76, Math.abs(dy) * aiProfiles.lerp) : 0;
+                }
+
+                if (p.z === 0 && Math.abs(p.vx - p.prevVx) > 6.5) {
+                    sfx.play('squeak');
+                    emitParticles(p.x, p.y + 3, 'rgba(255,255,255,0.45)', 4, 3);
+                }
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.team === 'left') {
+                    p.x = Math.max(125, Math.min(NET_X - 44, p.x));
+                } else {
+                    p.x = Math.max(NET_X + 44, Math.min(VW - 125, p.x));
+                }
+                p.y = Math.max(COURT_TOP_Y + 14, Math.min(COURT_BOT_Y - 12, p.y));
+
+                const moveSpeed = Math.hypot(p.vx, p.vy);
+                if (moveSpeed > 0.35 && p.z === 0) {
+                    p.stridePhase += moveSpeed * 0.048;
+                } else {
+                    p.stridePhase = 0;
+                }
+                p.idleBreath += 0.07;
+                p.lungeTilt += ((p.vx * 0.032) - p.lungeTilt) * 0.2;
+                p.ribbonWave += 0.16 + moveSpeed * 0.03;
+
+                if (p.z > 0 || p.vz !== 0) {
+                    p.z += p.vz;
+                    p.vz -= 0.76;
+                    if (p.z <= 0) {
+                        p.z = 0;
+                        p.vz = 0;
+                    }
+                }
+
+                if (p.swingFrames > 0) p.swingFrames--;
+            });
+
+            if (shuttle.inServeState) {
+                const srv = players.find(p => p.team === state.serverTeam);
+                if (srv) {
+                    const dir = state.serverTeam === 'left' ? 1 : -1;
+                    shuttle.x = srv.x + dir * 28;
+                    shuttle.y = srv.y;
+                    shuttle.z = srv.z + 60 + Math.sin(Date.now() / 130) * 4;
+                    shuttle.heading = state.serverTeam === 'left' ? -0.25 : Math.PI + 0.25;
+                }
+            } else if (state.screen === 'PLAYING') {
+                const airDrag = shuttle.isSmash ? 0.991 : 0.984;
+                const gravity = shuttle.isSmash ? 0.35 : 0.29;
+
+                shuttle.vx *= airDrag;
+                shuttle.vy *= airDrag;
+                shuttle.vz = shuttle.vz * airDrag - gravity;
+
+                shuttle.x += shuttle.vx;
+                shuttle.y += shuttle.vy;
+                shuttle.z += shuttle.vz;
+
+                shuttle.heading = Math.atan2(-shuttle.vz, shuttle.vx);
+
+                shuttle.trail.push({
+                    x: shuttle.x,
+                    sy: shuttle.y - shuttle.z,
+                    isSmash: shuttle.isSmash
+                });
+                if (shuttle.trail.length > 16) shuttle.trail.shift();
+
+                if (Math.abs(shuttle.x - NET_X) < 13 && shuttle.z < NET_HEIGHT) {
+                    sfx.play('net_cord');
+                    state.netRipple = (shuttle.vx > 0 ? 1 : -1) * 14;
+                    state.netRippleY = shuttle.y - shuttle.z;
+                    emitParticles(NET_X, shuttle.y - shuttle.z, '#ffffff', 9, 5);
+
+                    if (shuttle.z > NET_HEIGHT - 12 && Math.random() < 0.38) {
+                        shuttle.vx *= 0.35;
+                        shuttle.vz = 3.2;
+                        shuttle.x = shuttle.vx > 0 ? NET_X + 14 : NET_X - 14;
+                        showCallout('নেট কর্ড টাম্বল! 😮', 'bg-sky-400/90 text-slate-950');
+                    } else {
+                        shuttle.vx *= -0.32;
+                        shuttle.x = shuttle.x < NET_X ? NET_X - 14 : NET_X + 14;
+                    }
+                    shuttle.isSmash = false;
+                }
+
+                if (shuttle.z <= 0) {
+                    shuttle.z = 0;
+                    emitParticles(shuttle.x, shuttle.y, '#fde047', 16, 7);
+
+                    const inBoundsX = shuttle.x >= 95 && shuttle.x <= VW - 95;
+                    const inBoundsY = shuttle.y >= COURT_TOP_Y - 8 && shuttle.y <= COURT_BOT_Y + 8;
+
+                    if (!inBoundsX || !inBoundsY) {
+                        const winner = shuttle.lastHitterTeam === 'left' ? 'right' : 'left';
+                        awardPoint(winner, 'OUT! 🚩');
+                    } else {
+                        const winner = shuttle.x < NET_X ? 'right' : 'left';
+                        awardPoint(winner, 'IN! ✓');
+                    }
+                }
+            }
+
+            state.netRipple *= 0.86;
+            state.crowdExcitement *= 0.97;
+            if (state.screenShake > 0) state.screenShake *= 0.82;
+
+            if (state.cameraZoomMode === 0 && state.screen === 'PLAYING') {
+                const targetCamX = (VW / 2 - shuttle.x) * 0.045;
+                const targetCamY = (VH / 2 - (shuttle.y - shuttle.z * 0.4)) * 0.03;
+                state.camX += (targetCamX - state.camX) * 0.08;
+                state.camY += (targetCamY - state.camY) * 0.08;
+                state.camScale += (1.03 - state.camScale) * 0.06;
+            } else {
+                state.camX += (0 - state.camX) * 0.1;
+                state.camY += (0 - state.camY) * 0.1;
+                state.camScale += (1.0 - state.camScale) * 0.1;
+            }
+        }
+
+        function updateParticlesAndEffects() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.vy += 0.15;
+                pt.life -= pt.decay;
+                if (pt.life <= 0) particles.splice(i, 1);
+            }
+
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const sw = shockwaves[i];
+                sw.radius += 5.5;
+                sw.alpha -= 0.055;
+                if (sw.alpha <= 0) shockwaves.splice(i, 1);
+            }
+
+            for (let i = confetti.length - 1; i >= 0; i--) {
+                const cf = confetti[i];
+                cf.x += cf.vx;
+                cf.y += cf.vy;
+                cf.vy += 0.22;
+                cf.rot += cf.vRot;
+                cf.life -= 0.008;
+                if (cf.life <= 0 || cf.y > VH) confetti.splice(i, 1);
+            }
+
+            for (let i = state.cameraFlashes.length - 1; i >= 0; i--) {
+                state.cameraFlashes[i].alpha -= 0.08;
+                if (state.cameraFlashes[i].alpha <= 0) state.cameraFlashes.splice(i, 1);
+            }
+
+            dustMotes.forEach(m => {
+                m.x += m.vx;
+                m.y += m.vy;
+                if (m.x > VW) m.x = 0;
+                if (m.y < 0) m.y = VH * 0.7;
+            });
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১২: হাই-ডিটেইল ২.৫ডি ইনডোর স্টেডিয়াম ও রেফারেন্স ব্যাকড্রপ রেন্ডারার
+         * ===================================================================
+         */
+        function renderStadiumEnvironment() {
+            // ১. স্টেডিয়াম ব্যাক ওয়াল ও ছাদ (দিন বনাম রাত)
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, COURT_TOP_Y);
+            if (state.isNight) {
+                bgGrad.addColorStop(0, '#03060e');
+                bgGrad.addColorStop(0.55, '#0b132b');
+                bgGrad.addColorStop(1, '#1e293b');
+            } else {
+                bgGrad.addColorStop(0, '#1d4ed8');
+                bgGrad.addColorStop(0.5, '#3b82f6');
+                bgGrad.addColorStop(1, '#60a5fa');
+            }
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, VW, COURT_TOP_Y);
+
+            // অপশনাল রেফারেন্স স্টেডিয়াম ইমেজ ব্লেন্ড (assets/arena-night.jpg বা assets/arena-day.jpg থাকলে)
+            const activeArenaRef = state.isNight
+                ? (refImages.arenaNight.loaded ? refImages.arenaNight.img : null)
+                : (refImages.arenaDay.loaded ? refImages.arenaDay.img : null);
+
+            if (activeArenaRef) {
+                ctx.save();
+                ctx.globalAlpha = state.isNight ? 0.28 : 0.22;
+                ctx.drawImage(activeArenaRef, 0, 0, VW, COURT_TOP_Y);
+                ctx.restore();
+            }
+
+            // ২. ছাদের স্টিল ট্রাস কাঠামো ও ফ্লাডলাইট/জানালা
+            ctx.strokeStyle = state.isNight ? 'rgba(148, 163, 184, 0.14)' : 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 3;
+            for (let x = 60; x < VW; x += 170) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x + 85, 72);
+                ctx.lineTo(x + 170, 0);
+                ctx.stroke();
+
+                if (state.isNight) {
+                    ctx.fillStyle = '#fef08a';
+                    ctx.shadowColor = '#fde047';
+                    ctx.shadowBlur = 18;
+                    ctx.fillRect(x + 48, 64, 74, 9);
+                    ctx.shadowBlur = 0;
+
+                    const coneGrad = ctx.createLinearGradient(x + 85, 73, x + 85, COURT_BOT_Y);
+                    coneGrad.addColorStop(0, 'rgba(254, 240, 138, 0.18)');
+                    coneGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+                    ctx.fillStyle = coneGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(x + 48, 73);
+                    ctx.lineTo(x - 50, COURT_BOT_Y);
+                    ctx.lineTo(x + 220, COURT_BOT_Y);
+                    ctx.lineTo(x + 122, 73);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                    ctx.fillRect(x + 45, 16, 80, 34);
+
+                    const sunGrad = ctx.createLinearGradient(x + 85, 50, x + 140, COURT_BOT_Y);
+                    sunGrad.addColorStop(0, 'rgba(255, 251, 235, 0.16)');
+                    sunGrad.addColorStop(1, 'rgba(255, 251, 235, 0)');
+                    ctx.fillStyle = sunGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(x + 45, 50);
+                    ctx.lineTo(x + 10, COURT_BOT_Y);
+                    ctx.lineTo(x + 240, COURT_BOT_Y);
+                    ctx.lineTo(x + 125, 50);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            // ৩. ঝুলন্ত সেন্টার LED জাম্বোট্রন স্কোরবোর্ড
+            ctx.fillStyle = '#090d16';
+            ctx.strokeStyle = state.isNight ? '#38bdf8' : '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(NET_X - 115, 78, 230, 48, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 11px Rajdhani, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('DHAKA INDOOR ARENA • LIVE', NET_X, 95);
+
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 18px Rajdhani, sans-serif';
+            ctx.fillText(`${state.scoreLeft}   :   ${state.scoreRight}`, NET_X, 117);
+
+            // স্টেডিয়ামের বাম ও ডান প্রধান কলাম পিলার এবং গ্যালারি ব্যানার
+            const pillarGradL = ctx.createLinearGradient(12, 0, 34, 0);
+            pillarGradL.addColorStop(0, state.isNight ? '#0f172a' : '#334155');
+            pillarGradL.addColorStop(1, state.isNight ? '#1e293b' : '#64748b');
+            ctx.fillStyle = pillarGradL;
+            ctx.fillRect(12, 70, 22, COURT_TOP_Y - 70);
+            ctx.fillRect(VW - 34, 70, 22, COURT_TOP_Y - 70);
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+            ctx.beginPath();
+            ctx.roundRect(84, 143, 185, 18, 5);
+            ctx.roundRect(VW - 269, 143, 185, 18, 5);
+            ctx.fill();
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 10px Hind Siliguri, sans-serif';
+            ctx.fillText('চ্যাম্পিয়নশিপ ফাইট! 🏸', 176, 155);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText('ফায়ার স্ম্যাশ জোন 🔥', VW - 176, 155);
+
+            // ৪. বহু-স্তরবিশিষ্ট দর্শক গ্যালারি
+            ctx.fillStyle = state.isNight ? '#070b14' : '#1e293b';
+            ctx.fillRect(28, 138, VW - 56, COURT_TOP_Y - 138);
+
+            for (let t = 0; t < 4; t++) {
+                const stepY = 175 + t * 42;
+                ctx.fillStyle = state.isNight ? '#111827' : '#334155';
+                ctx.fillRect(28, stepY, VW - 56, 11);
+            }
+
+            const tNow = Date.now() / 160;
+            const cheerAmp = 1.5 + state.crowdExcitement * 7.5;
+            crowdMembers.forEach(m => {
+                const hop = Math.sin(tNow + m.phase) * cheerAmp;
+                ctx.save();
+                ctx.translate(m.x, m.y + hop);
+                ctx.scale(m.scale, m.scale);
+
+                if (state.crowdExcitement > 0.25 && m.hasClapper) {
+                    ctx.strokeStyle = m.skin;
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-7, -12);
+                    ctx.lineTo(-12, -26);
+                    ctx.moveTo(7, -12);
+                    ctx.lineTo(12, -26);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = m.shirt;
+                ctx.beginPath();
+                ctx.roundRect(-9, -14, 18, 18, 5);
+                ctx.fill();
+
+                ctx.fillStyle = m.skin;
+                ctx.beginPath();
+                ctx.arc(0, -21, 6.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            state.cameraFlashes.forEach(f => {
+                const radGrad = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, f.size);
+                radGrad.addColorStop(0, `rgba(255, 255, 255, ${f.alpha})`);
+                radGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = radGrad;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // ৫. স্পনসর পেরিমিটার LED বোর্ড
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(28, COURT_TOP_Y - 34, VW - 56, 34);
+            ctx.strokeStyle = state.isNight ? '#0ea5e9' : '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(28, COURT_TOP_Y - 34, VW - 56, 34);
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 13px Rajdhani, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('PURE BADMINTON • DS SOFT   |   SHUTTLE MASTER 2.5D   |   BWF CHAMPIONSHIP SERIES   |   DHAKA ARENA', VW / 2, COURT_TOP_Y - 12);
+
+            // ৬. পলিশড আউটার ফ্লোর ও BWF সিন্থেটিক ব্যাডমিন্টন কোর্ট
+            const floorGrad = ctx.createLinearGradient(0, COURT_TOP_Y, 0, VH);
+            floorGrad.addColorStop(0, state.isNight ? '#172554' : '#1d4ed8');
+            floorGrad.addColorStop(1, state.isNight ? '#090d16' : '#1e40af');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, COURT_TOP_Y, VW, VH - COURT_TOP_Y);
+
+            const courtGrad = ctx.createLinearGradient(0, COURT_TOP_Y, 0, COURT_BOT_Y);
+            courtGrad.addColorStop(0, state.isNight ? '#047857' : '#10b981');
+            courtGrad.addColorStop(1, state.isNight ? '#064e3b' : '#059669');
+            ctx.fillStyle = courtGrad;
+
+            ctx.beginPath();
+            ctx.moveTo(COURT_TOP_L, COURT_TOP_Y);
+            ctx.lineTo(COURT_TOP_R, COURT_TOP_Y);
+            ctx.lineTo(COURT_BOT_R, COURT_BOT_Y);
+            ctx.lineTo(COURT_BOT_L, COURT_BOT_Y);
+            ctx.closePath();
+            ctx.fill();
+
+            if (state.isNight) {
+                ctx.shadowColor = '#34d399';
+                ctx.shadowBlur = 14;
+            }
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.94)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(COURT_TOP_L + 24, COURT_TOP_Y + 20);
+            ctx.lineTo(COURT_TOP_R - 24, COURT_TOP_Y + 20);
+            ctx.lineTo(COURT_BOT_R - 38, COURT_BOT_Y - 24);
+            ctx.lineTo(COURT_BOT_L + 38, COURT_BOT_Y - 24);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(NET_X - 115, COURT_TOP_Y);
+            ctx.lineTo(NET_X - 142, COURT_BOT_Y);
+            ctx.moveTo(NET_X + 115, COURT_TOP_Y);
+            ctx.lineTo(NET_X + 142, COURT_BOT_Y);
+
+            ctx.moveTo(COURT_TOP_L + 42, COURT_TOP_Y);
+            ctx.lineTo(COURT_BOT_L + 55, COURT_BOT_Y);
+            ctx.moveTo(COURT_TOP_R - 42, COURT_TOP_Y);
+            ctx.lineTo(COURT_BOT_R - 55, COURT_BOT_Y);
+            ctx.stroke();
+
+            const midY = (COURT_TOP_Y + COURT_BOT_Y) / 2;
+            ctx.beginPath();
+            ctx.moveTo((COURT_TOP_L + COURT_TOP_R) / 2 - 365, midY);
+            ctx.lineTo(NET_X - 128, midY);
+            ctx.moveTo(NET_X + 128, midY);
+            ctx.lineTo((COURT_TOP_L + COURT_TOP_R) / 2 + 365, midY);
+            ctx.stroke();
+
+            if (state.mode === 'practice') {
+                drawPracticeLauncher(1055, 525);
+            }
+        }
+
+        function drawPracticeLauncher(lx, ly) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.ellipse(320, 525, 65, 22, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(lx, ly);
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(0, 6, 32, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(0, -48);
+            ctx.lineTo(-24, 5);
+            ctx.moveTo(0, -48);
+            ctx.lineTo(24, 5);
+            ctx.stroke();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.roundRect(-25, -88, 50, 44, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(-40, -76, 16, 18);
+            ctx.restore();
+        }
+
+        function renderNet3D() {
+            const topY = COURT_TOP_Y - NET_HEIGHT + 16;
+            const botY = COURT_BOT_Y - NET_HEIGHT;
+            const sag = 8;
+            const midNetY = (topY + botY) / 2 + sag;
+            const rippleOffset = state.netRipple;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+            ctx.fillRect(NET_X - 7, COURT_TOP_Y, 14, COURT_BOT_Y - COURT_TOP_Y);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(NET_X, topY);
+            ctx.quadraticCurveTo(NET_X + rippleOffset, midNetY, NET_X, botY);
+            ctx.lineTo(NET_X, COURT_BOT_Y - 36);
+            ctx.lineTo(NET_X, COURT_TOP_Y - 26);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.38)';
+            ctx.lineWidth = 1.2;
+            for (let y = topY + 10; y < COURT_BOT_Y - 38; y += 11) {
+                ctx.beginPath();
+                ctx.moveTo(NET_X - 3, y);
+                ctx.lineTo(NET_X + 3 + rippleOffset * 0.4, y + 6);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(NET_X - 4, topY - 4, 8, (COURT_TOP_Y - topY) + 4);
+            ctx.fillRect(NET_X - 5, botY - 4, 10, (COURT_BOT_Y - botY) + 4);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6.5;
+            ctx.beginPath();
+            ctx.moveTo(NET_X, topY);
+            ctx.quadraticCurveTo(NET_X + rippleOffset, midNetY, NET_X, botY);
+            ctx.stroke();
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১৩: প্রসিডিউরাল কঙ্কাল অ্যানিমেশনসহ খেলোয়াড় রেন্ডারিং
+         * ===================================================================
+         */
+        function renderPlayer25D(targetCtx, p, isPreview = false) {
+            const isLeft = p.team === 'left';
+            const dir = isLeft ? 1 : -1;
+
+            const depthScale = isPreview ? 1.22 : (0.85 + ((p.y - COURT_TOP_Y) / (COURT_BOT_Y - COURT_TOP_Y)) * 0.25);
+            const sx = p.x;
+            const gy = p.y;
+            const by = gy - p.z;
+
+            targetCtx.save();
+
+            const shScale = Math.max(0.32, 1 - p.z / 280) * depthScale;
+            targetCtx.fillStyle = state.isNight ? 'rgba(0, 0, 0, 0.52)' : 'rgba(0, 0, 0, 0.35)';
+            targetCtx.beginPath();
+            targetCtx.ellipse(sx, gy + 4, 29 * shScale, 9.5 * shScale, 0, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            const breathOffset = Math.sin(p.idleBreath) * 1.5;
+            targetCtx.translate(sx, by + breathOffset);
+            targetCtx.scale(depthScale, depthScale);
+            targetCtx.rotate(p.lungeTilt);
+
+            const legSwing = Math.sin(p.stridePhase) * 13;
+            const kneeBend = p.z > 6 ? -10 : Math.abs(Math.cos(p.stridePhase)) * 4;
+
+            targetCtx.lineCap = 'round';
+            targetCtx.strokeStyle = p.skinColor;
+            targetCtx.lineWidth = 6.5;
+            targetCtx.beginPath();
+            targetCtx.moveTo(-4, -22);
+            targetCtx.lineTo(-6 - legSwing * 0.6, -12 + kneeBend * 0.5);
+            targetCtx.lineTo(-7 - legSwing, -3 + kneeBend);
+            targetCtx.stroke();
+
+            targetCtx.fillStyle = p.shoeColor;
+            targetCtx.beginPath();
+            targetCtx.roundRect(-13 - legSwing, -6 + kneeBend, 14, 6.5, 3);
+            targetCtx.fill();
+
+            targetCtx.beginPath();
+            targetCtx.moveTo(5, -22);
+            targetCtx.lineTo(6 + legSwing * 0.6, -11);
+            targetCtx.lineTo(7 + legSwing, -2);
+            targetCtx.stroke();
+
+            targetCtx.fillStyle = p.shoeColor;
+            targetCtx.beginPath();
+            targetCtx.roundRect(1 + legSwing, -5, 14, 6.5, 3);
+            targetCtx.fill();
+            targetCtx.fillStyle = p.jerseyColor;
+            targetCtx.fillRect(4 + legSwing, -3, 8, 2);
+
+            targetCtx.fillStyle = p.shortsColor;
+            targetCtx.beginPath();
+            if (p.gender === 'girl') {
+                targetCtx.moveTo(-14, -35);
+                targetCtx.lineTo(14, -35);
+                targetCtx.lineTo(20, -18);
+                targetCtx.lineTo(-20, -18);
+                targetCtx.closePath();
+            } else {
+                targetCtx.roundRect(-14, -35, 28, 16, 4);
+            }
+            targetCtx.fill();
+
+            const jGrad = targetCtx.createLinearGradient(-16, -64, 16, -33);
+            jGrad.addColorStop(0, p.jerseyColor);
+            jGrad.addColorStop(1, '#090d16');
+            targetCtx.fillStyle = jGrad;
+            targetCtx.beginPath();
+            targetCtx.roundRect(-16, -64, 32, 31, 9);
+            targetCtx.fill();
+
+            targetCtx.fillStyle = p.stripeColor;
+            targetCtx.fillRect(-15, -53, 30, 4.5);
+
+            targetCtx.fillStyle = p.skinColor;
+            targetCtx.fillRect(-5, -69, 10, 7);
+
+            if (p.gender === 'girl') {
+                const ribbonBob = Math.sin(p.ribbonWave) * 4;
+                targetCtx.fillStyle = p.hairColor;
+                targetCtx.beginPath();
+                targetCtx.ellipse(-dir * 16, -76 + ribbonBob, 9, 14, -dir * 0.45, 0, Math.PI * 2);
+                targetCtx.fill();
+
+                targetCtx.fillStyle = p.stripeColor;
+                targetCtx.beginPath();
+                targetCtx.arc(-dir * 13, -82, 4, 0, Math.PI * 2);
+                targetCtx.fill();
+            }
+
+            targetCtx.fillStyle = p.skinColor;
+            targetCtx.beginPath();
+            targetCtx.arc(0, -77, 16, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            targetCtx.fillStyle = p.hairColor;
+            targetCtx.beginPath();
+            targetCtx.arc(0, -80, 16.5, Math.PI, Math.PI * 2);
+            targetCtx.fill();
+
+            targetCtx.fillStyle = p.stripeColor;
+            targetCtx.fillRect(-15, -84, 30, 4.5);
+
+            targetCtx.fillStyle = '#0f172a';
+            targetCtx.beginPath();
+            targetCtx.arc(dir * 7, -76, 2.5, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            let armAngle = isLeft ? -0.68 : Math.PI + 0.68;
+            if (p.swingFrames > 0) {
+                const t = 1 - p.swingFrames / p.swingMaxFrames;
+                if (p.swingKind === 'smash') {
+                    armAngle += dir * (t * 3.2 - 1.2);
+                } else {
+                    armAngle += dir * (t * 2.5 - 0.85);
+                }
+            } else if (isPreview) {
+                armAngle += Math.sin(Date.now() / 280) * 0.14;
+            }
+
+            targetCtx.save();
+            targetCtx.translate(dir * 10, -52);
+            targetCtx.rotate(armAngle);
+
+            if (p.swingFrames > 3) {
+                targetCtx.strokeStyle = p.swingKind === 'smash'
+                    ? 'rgba(251, 146, 60, 0.75)'
+                    : 'rgba(255, 255, 255, 0.42)';
+                targetCtx.lineWidth = p.swingKind === 'smash' ? 11 : 7;
+                targetCtx.beginPath();
+                targetCtx.arc(0, 0, 54, -0.55, 0.55);
+                targetCtx.stroke();
+            }
+
+            targetCtx.strokeStyle = p.skinColor;
+            targetCtx.lineWidth = 6;
+            targetCtx.beginPath();
+            targetCtx.moveTo(0, 0);
+            targetCtx.lineTo(16, 0);
+            targetCtx.stroke();
+
+            targetCtx.strokeStyle = '#e2e8f0';
+            targetCtx.lineWidth = 2.8;
+            targetCtx.beginPath();
+            targetCtx.moveTo(14, 0);
+            targetCtx.lineTo(43, 0);
+            targetCtx.stroke();
+
+            targetCtx.strokeStyle = (p.swingKind === 'smash' && p.swingFrames > 0) ? '#f97316' : p.racketColor;
+            targetCtx.lineWidth = 3.5;
+            targetCtx.beginPath();
+            targetCtx.ellipse(57, 0, 15.5, 11, 0, 0, Math.PI * 2);
+            targetCtx.stroke();
+
+            targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            targetCtx.lineWidth = 0.8;
+            for (let gx = -9; gx <= 9; gx += 6) {
+                targetCtx.beginPath();
+                targetCtx.moveTo(57 + gx, -9);
+                targetCtx.lineTo(57 + gx, 9);
+                targetCtx.stroke();
+            }
+            for (let gy = -6; gy <= 6; gy += 6) {
+                targetCtx.beginPath();
+                targetCtx.moveTo(43, gy);
+                targetCtx.lineTo(71, gy);
+                targetCtx.stroke();
+            }
+
+            targetCtx.restore();
+            targetCtx.restore();
+        }
+
+        function renderShuttlecock() {
+            const sx = shuttle.x;
+            const gy = shuttle.y;
+            const sy = gy - shuttle.z;
+
+            const shScale = Math.max(0.28, 1 - shuttle.z / 340);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.36)';
+            ctx.beginPath();
+            ctx.ellipse(sx, gy, 12 * shScale, 4.2 * shScale, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < shuttle.trail.length; i++) {
+                const tr = shuttle.trail[i];
+                const ratio = i / shuttle.trail.length;
+                ctx.fillStyle = tr.isSmash
+                    ? `rgba(249, 115, 22, ${ratio * 0.58})`
+                    : `rgba(255, 255, 255, ${ratio * 0.42})`;
+                ctx.beginPath();
+                ctx.arc(tr.x, tr.sy, ratio * (tr.isSmash ? 8.5 : 5.5), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.save();
+            ctx.translate(sx, sy);
+            ctx.rotate(shuttle.heading);
+
+            ctx.fillStyle = shuttle.isSmash ? '#fef08a' : '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(-2, 0);
+            ctx.lineTo(-18, -9.5);
+            ctx.lineTo(-13.5, 0);
+            ctx.lineTo(-18, 9.5);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-3, 0);
+            ctx.lineTo(-16, -5);
+            ctx.moveTo(-3, 0);
+            ctx.lineTo(-16, 5);
+            ctx.stroke();
+
+            ctx.fillStyle = shuttle.isSmash ? '#ef4444' : '#f97316';
+            ctx.beginPath();
+            ctx.arc(2.5, 0, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function renderForegroundEffects() {
+            particles.forEach(pt => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, pt.life);
+                ctx.fillStyle = pt.color;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            shockwaves.forEach(sw => {
+                ctx.save();
+                ctx.strokeStyle = sw.color;
+                ctx.globalAlpha = Math.max(0, sw.alpha);
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            if (!state.isNight) {
+                dustMotes.forEach(m => {
+                    ctx.fillStyle = `rgba(255, 251, 235, ${m.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            confetti.forEach(cf => {
+                ctx.save();
+                ctx.translate(cf.x, cf.y);
+                ctx.rotate(cf.rot);
+                ctx.fillStyle = cf.color;
+                ctx.fillRect(-cf.w / 2, -cf.h / 2, cf.w, cf.h);
+                ctx.restore();
+            });
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১৪: মেইন ৬০ FPS রেন্ডার লুপ
+         * ===================================================================
+         */
+        function gameLoop() {
+            stepSimulation();
+
+            ctx.save();
+            ctx.clearRect(0, 0, VW, VH);
+
+            const shakeX = (Math.random() - 0.5) * state.screenShake;
+            const shakeY = (Math.random() - 0.5) * state.screenShake;
+            ctx.translate(VW / 2 + state.camX + shakeX, VH / 2 + state.camY + shakeY);
+            ctx.scale(state.camScale, state.camScale);
+            ctx.translate(-VW / 2, -VH / 2);
+
+            renderStadiumEnvironment();
+
+            const depthQueue = [];
+            players.forEach(p => depthQueue.push({ kind: 'player', y: p.y, obj: p }));
+            depthQueue.push({ kind: 'net', y: (COURT_TOP_Y + COURT_BOT_Y) / 2 });
+            depthQueue.push({ kind: 'shuttle', y: shuttle.y });
+
+            depthQueue.sort((a, b) => a.y - b.y);
+
+            depthQueue.forEach(entry => {
+                if (entry.kind === 'player') renderPlayer25D(ctx, entry.obj, false);
+                else if (entry.kind === 'net') renderNet3D();
+                else if (entry.kind === 'shuttle') renderShuttlecock();
+            });
+
+            renderForegroundEffects();
+            ctx.restore();
+
+            if (state.screen === 'LOBBY') {
+                pCtx.clearRect(0, 0, 220, 175);
+                renderPlayer25D(pCtx, {
+                    x: 110,
+                    y: 148,
+                    z: 0,
+                    team: 'left',
+                    gender: playerConfig.gender,
+                    skinColor: playerConfig.skinColor,
+                    hairColor: playerConfig.hairColor,
+                    jerseyColor: playerConfig.jerseyColor,
+                    shortsColor: playerConfig.shortsColor,
+                    stripeColor: playerConfig.stripeColor,
+                    shoeColor: playerConfig.shoeColor,
+                    racketColor: playerConfig.racketColor,
+                    stridePhase: Date.now() / 160,
+                    idleBreath: Date.now() / 220,
+                    ribbonWave: Date.now() / 140,
+                    swingFrames: 0,
+                    swingMaxFrames: 18,
+                    swingKind: 'shot',
+                    lungeTilt: 0.04
+                }, true);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        /**
+         * ===================================================================
+         * সেকশন ১৫: UI, গ্যালারি ও মাইক্রো-কন্ট্রোল ইভেন্ট বাইন্ডিং
+         * ===================================================================
+         */
+        function toggleDayNight() {
+            sfx.play('ui');
+            state.isNight = !state.isNight;
+            document.getElementById('hud-env-icon').textContent = state.isNight ? '🌙' : '☀️';
+            document.getElementById('hud-env-text').textContent = state.isNight ? 'রাত' : 'দিন';
+            document.getElementById('lobby-env-icon').textContent = state.isNight ? '🌙' : '☀️';
+            document.getElementById('lobby-env-text').textContent = state.isNight ? 'রাত মোড' : 'দিন মোড';
+        }
+
+        document.getElementById('hud-btn-env').addEventListener('click', toggleDayNight);
+        document.getElementById('lobby-btn-env').addEventListener('click', toggleDayNight);
+
+        // রেফারেন্স গ্যালারি ওপেন/ক্লোজ
+        const galleryOverlay = document.getElementById('gallery-overlay');
+        function openGallery() {
+            sfx.play('ui');
+            galleryOverlay.classList.remove('hidden');
+        }
+        function closeGallery() {
+            sfx.play('ui');
+            galleryOverlay.classList.add('hidden');
+        }
+        document.getElementById('lobby-btn-gallery').addEventListener('click', openGallery);
+        document.getElementById('hud-btn-gallery').addEventListener('click', openGallery);
+        document.getElementById('btn-close-gallery').addEventListener('click', closeGallery);
+
+        document.getElementById('hud-btn-sound').addEventListener('click', (e) => {
+            state.soundOn = !state.soundOn;
+            e.currentTarget.textContent = state.soundOn ? '🔊' : '🔇';
+            if (state.soundOn) sfx.play('ui');
+        });
+
+        document.getElementById('hud-btn-cam').addEventListener('click', () => {
+            sfx.play('ui');
+            state.cameraZoomMode = state.cameraZoomMode === 0 ? 1 : 0;
+            showCallout(state.cameraZoomMode === 0 ? '🎥 ডায়নামিক ক্যামেরা' : '🎥 ফুল কোর্ট ভিউ', 'bg-slate-800/90 text-white');
+        });
+
+        document.getElementById('hud-btn-pause').addEventListener('click', () => {
+            if (state.screen === 'PLAYING') {
+                sfx.play('ui');
+                state.screen = 'PAUSED';
+                document.getElementById('pause-overlay').classList.remove('hidden');
+            }
+        });
+        document.getElementById('btn-resume').addEventListener('click', () => {
+            sfx.play('ui');
+            state.screen = 'PLAYING';
+            document.getElementById('pause-overlay').classList.add('hidden');
+        });
+
+        function goToLobby() {
+            sfx.play('ui');
+            state.screen = 'LOBBY';
+            document.getElementById('lobby-overlay').classList.remove('hidden');
+            document.getElementById('game-hud').classList.add('hidden');
+            document.getElementById('controls-overlay').classList.add('hidden');
+            document.getElementById('pause-overlay').classList.add('hidden');
+            document.getElementById('result-overlay').classList.add('hidden');
+            document.getElementById('gallery-overlay').classList.add('hidden');
+        }
+        document.getElementById('hud-btn-menu').addEventListener('click', goToLobby);
+        document.getElementById('btn-pause-menu').addEventListener('click', goToLobby);
+        document.getElementById('res-btn-menu').addEventListener('click', goToLobby);
+
+        document.getElementById('practice-feed-select').addEventListener('change', (e) => {
+            state.practiceFeedType = e.target.value;
+            if (state.mode === 'practice') firePracticeShuttle();
+        });
+
+        const nameInput = document.getElementById('opt-player-name');
+        if (nameInput) {
+            nameInput.addEventListener('input', (e) => {
+                playerConfig.name = e.target.value;
+            });
+        }
+
+        document.querySelectorAll('#shoe-palette button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sfx.play('ui');
+                document.querySelectorAll('#shoe-palette button').forEach(b => b.classList.remove('ring-1', 'ring-sky-400'));
+                btn.classList.add('ring-1', 'ring-sky-400');
+                playerConfig.shoeColor = btn.dataset.shoe;
+            });
+        });
+
+        const boyBtn = document.getElementById('opt-boy');
+        const girlBtn = document.getElementById('opt-girl');
+        boyBtn.addEventListener('click', () => {
+            sfx.play('ui');
+            playerConfig.gender = 'boy';
+            boyBtn.className = 'micro-pill !bg-blue-600/80 !border-blue-400 text-white';
+            girlBtn.className = 'micro-pill';
+        });
+        girlBtn.addEventListener('click', () => {
+            sfx.play('ui');
+            playerConfig.gender = 'girl';
+            girlBtn.className = 'micro-pill !bg-pink-600/80 !border-pink-400 text-white';
+            boyBtn.className = 'micro-pill';
+        });
+
+        document.querySelectorAll('#skin-palette button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sfx.play('ui');
+                document.querySelectorAll('#skin-palette button').forEach(b => b.classList.remove('ring-1', 'ring-white'));
+                btn.classList.add('ring-1', 'ring-white');
+                playerConfig.skinColor = btn.dataset.skin;
+            });
+        });
+
+        document.querySelectorAll('#kit-palette button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sfx.play('ui');
+                document.querySelectorAll('#kit-palette button').forEach(b => b.classList.remove('ring-1', 'ring-white'));
+                btn.classList.add('ring-1', 'ring-white');
+                playerConfig.jerseyColor = btn.dataset.jersey;
+                playerConfig.shortsColor = btn.dataset.shorts;
+                playerConfig.stripeColor = btn.dataset.stripe;
+            });
+        });
+
+        document.querySelectorAll('#racket-palette button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sfx.play('ui');
+                document.querySelectorAll('#racket-palette button').forEach(b => b.classList.remove('!border-amber-400'));
+                btn.classList.add('!border-amber-400');
+                playerConfig.racketColor = btn.dataset.racket;
+                playerConfig.racketPower = parseInt(btn.dataset.power, 10);
+                playerConfig.racketSpeed = parseInt(btn.dataset.speed, 10);
+                document.getElementById('stat-power-bar').style.width = `${playerConfig.racketPower}%`;
+                document.getElementById('stat-speed-bar').style.width = `${playerConfig.racketSpeed}%`;
+            });
+        });
+
+        const MODE_DETAILS = {
+            single: '<b class="text-sky-300">Single Match:</b> আপনার পছন্দমতো পয়েন্ট ও AI লেভেলে কুইক ম্যাচ খেলুন।',
+            '1v1': '<b class="text-rose-300">1 VS 1 Ranked:</b> তীব্র প্রতিদ্বন্দ্বিতাপূর্ণ ওয়ান-অন-ওয়ান র‍্যাঙ্কড ম্যাচ।',
+            '2v2': '<b class="text-emerald-300">2 VS 2 Doubles:</b> আপনার স্মার্ট AI পার্টনারকে সাথে নিয়ে ডাবলস ম্যাচ খেলুন!',
+            tournament: '<b class="text-amber-300">Tournament Cup:</b> কোয়ার্টার, সেমি ও ফাইনাল জিতে চ্যাম্পিয়ন ট্রফি অর্জন করুন!',
+            practice: '<b class="text-purple-300">Practice Mode:</b> অটো শাটল লঞ্চার মেশিন থেকে হাই ক্লিয়ার, ড্রপ ও স্ম্যাশ অনুশীলন করুন।',
+            multiplayer: '<b class="text-cyan-300">Multiplayer (2P):</b> একই পিসিতে ২ জন! P1: WASD+F/G | P2: Arrows+Enter/K'
+        };
+
+        document.querySelectorAll('.mode-tile').forEach(tile => {
+            tile.addEventListener('click', () => {
+                sfx.play('ui');
+                document.querySelectorAll('.mode-tile').forEach(t => t.classList.remove('selected'));
+                tile.classList.add('selected');
+                state.mode = tile.dataset.mode;
+                document.getElementById('lobby-mode-info').innerHTML = MODE_DETAILS[state.mode];
+            });
+        });
+
+        document.getElementById('btn-launch-game').addEventListener('click', () => {
+            sfx.play('ui');
+            state.difficulty = document.getElementById('cfg-difficulty').value;
+            state.targetPoints = parseInt(document.getElementById('cfg-points').value, 10);
+            state.tournamentStage = 1;
+
+            document.getElementById('lobby-overlay').classList.add('hidden');
+            document.getElementById('game-hud').classList.remove('hidden');
+            document.getElementById('controls-overlay').classList.remove('hidden');
+
+            state.screen = 'PLAYING';
+            initMatch();
+            showCallout('খেলা শুরু! সার্ভ করুন 🏸', 'bg-sky-500/90 text-white');
+        });
+
+        function syncCanvasResolution() {
+            canvas.width = VW;
+            canvas.height = VH;
+        }
+        window.addEventListener('resize', syncCanvasResolution);
+        window.onload = () => {
+            syncCanvasResolution();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
